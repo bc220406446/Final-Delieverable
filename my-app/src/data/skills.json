@@ -1,0 +1,86 @@
+[
+  {
+    "id": "critical-thinking",
+    "title": "Critical Thinking for Interview Prep",
+    "description": "Improve reasoning, answer structuring, and problem-solving approach for interviews.",
+    "providerName": "Ahsan Raza",
+    "providerEmail": "ahsan.raza@gmail.com",
+    "category": "Cognitive / Intellectual Skills",
+    "level": "Intermediate",
+    "location": "Rawalpindi",
+    "availability": "Sat • 4:00–6:00 PM",
+    "imageSrc": "/images/browse-skills/critical-thinking.jpg"
+  },
+  {
+    "id": "python",
+    "title": "Basic Python Programming",
+    "description": "Start Python from scratch: variables, loops, functions, and mini-projects.",
+    "providerName": "Hafsa Khan",
+    "providerEmail": "hafsa.khan@gmail.com",
+    "category": "Technical / Hard Skills",
+    "level": "Beginner",
+    "location": "Islamabad",
+    "availability": "Mon & Wed • 8:00–9:00 PM",
+    "imageSrc": "/images/browse-skills/python.jpg"
+  },
+  {
+    "id": "public-speaking",
+    "title": "Public Speaking Confidence Workshop",
+    "description": "Practice speeches, reduce stage fear, and improve delivery with feedback.",
+    "providerName": "Sana Noor",
+    "providerEmail": "sana.noor@gmail.com",
+    "category": "Interpersonal / People Skills",
+    "level": "Intermediate",
+    "location": "Karachi",
+    "availability": "Sun • 3:00–5:00 PM",
+    "imageSrc": "/images/browse-skills/public-speaking.jpg"
+  },
+  {
+    "id": "stress-management",
+    "title": "Stress Management & Study Routine",
+    "description": "Simple routines to manage stress, keep consistency, and study effectively.",
+    "providerName": "Hira Fatima",
+    "providerEmail": "hira.fatima@gmail.com",
+    "category": "Personal / Self-Management Skills",
+    "level": "Beginner",
+    "location": "Peshawar",
+    "availability": "Tue & Thu • 7:00–8:00 PM",
+    "imageSrc": "/images/browse-skills/stress.jpg"
+  },
+  {
+    "id": "trello",
+    "title": "Project Planning with Trello",
+    "description": "Plan tasks, set milestones, and track progress using Trello boards.",
+    "providerName": "Usman Tariq",
+    "providerEmail": "usman.tariq@gmail.com",
+    "category": "Organizational / Management Skills",
+    "level": "Intermediate",
+    "location": "Lahore",
+    "availability": "Fri • 6:00–7:00 PM",
+    "imageSrc": "/images/browse-skills/trello.jpg"
+  },
+  {
+    "id": "web-design",
+    "title": "Web Design Basics (HTML/CSS)",
+    "description": "Learn layout, responsive design basics, and build your first simple webpage.",
+    "providerName": "Ayesha Siddiqui",
+    "providerEmail": "ayesha.siddiqui@gmail.com",
+    "category": "Digital / IT Skills",
+    "level": "Beginner",
+    "location": "Karachi",
+    "availability": "Sat • 11:00 AM–1:00 PM",
+    "imageSrc": "/images/browse-skills/web-design.jpg"
+  },
+  {
+    "id": "spoken-english",
+    "title": "Spoken English for Beginners",
+    "description": "Improve speaking with daily practice, vocabulary, and role-play sessions.",
+    "providerName": "Bilal Ahmed",
+    "providerEmail": "bilal.ahmed@gmail.com",
+    "category": "Language / Communication Skills",
+    "level": "Beginner",
+    "location": "Faisalabad",
+    "availability": "Sun • 6:00–7:00 PM",
+    "imageSrc": "/images/browse-skills/spoken-english.jpg"
+  }
+]

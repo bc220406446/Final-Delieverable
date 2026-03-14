@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "name": "Cognitive / Intellectual Skills",
+    "description": "Thinking, reasoning, decision-making, creativity."
+  },
+  {
+    "id": 2,
+    "name": "Technical / Hard Skills",
+    "description": "Job-specific measurable skills (e.g., programming, accounting)."
+  },
+  {
+    "id": 3,
+    "name": "Interpersonal / People Skills",
+    "description": "Communication, teamwork, leadership, conflict resolution."
+  },
+  {
+    "id": 4,
+    "name": "Personal / Self-Management Skills",
+    "description": "Time management, adaptability, self‑motivation, responsibility."
+  },
+  {
+    "id": 5,
+    "name": "Organizational / Management Skills",
+    "description": "Planning, organizing, budgeting, goal setting."
+  },
+  {
+    "id": 6,
+    "name": "Digital / IT Skills",
+    "description": "Digital skills and IT tools for modern work."
+  },
+  {
+    "id": 7,
+    "name": "Language / Communication Skills",
+    "description": "Language and communication skills (speaking, writing)."
+  }
+]

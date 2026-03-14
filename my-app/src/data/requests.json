@@ -1,0 +1,67 @@
+[
+  {
+    "id": "sent-1",
+    "tab": "sent",
+    "skillTitle": "Web Design Basics (HTML/CSS)",
+    "status": "pending",
+    "personName": "Ayesha Siddiqui",
+    "personCity": "Karachi",
+    "personEmail": "ayesha.siddiqui@gmail.com",
+    "preferredTimeSlot": "Sat 11:00 AM",
+    "mode": "Online",
+    "message": "Hi! I want to learn layout basics. Can we do it this Saturday?",
+    "imageSrc": "/images/request-skills/web-design.jpg"
+  },
+  {
+    "id": "sent-2",
+    "tab": "sent",
+    "skillTitle": "Spoken English for Beginners",
+    "status": "approved",
+    "personName": "Bilal Ahmed",
+    "personCity": "Faisalabad",
+    "personEmail": "bilal.ahmed@gmail.com",
+    "preferredTimeSlot": "Sun 6:00–7:00 PM",
+    "mode": "Online",
+    "message": "I'd like to practice speaking daily for 20 minutes. Please guide me.",
+    "imageSrc": "/images/request-skills/spoken-english.jpg"
+  },
+  {
+    "id": "sent-3",
+    "tab": "sent",
+    "skillTitle": "Project Planning with Trello",
+    "status": "rejected",
+    "personName": "Usman Tariq",
+    "personCity": "Lahore",
+    "personEmail": "usman.tariq@gmail.com",
+    "preferredTimeSlot": "Fri 6:00 PM",
+    "mode": "Online",
+    "message": "Can you show me how to set up a Trello board for my semester project?",
+    "imageSrc": "/images/request-skills/trello.jpg"
+  },
+  {
+    "id": "recv-1",
+    "tab": "received",
+    "skillTitle": "SEO Audit & On-Page Optimization",
+    "status": "pending",
+    "personName": "Zain Abbas",
+    "personCity": "Rawalpindi",
+    "personEmail": "zain.abbas@gmail.com",
+    "preferredTimeSlot": "Tue 8:00–9:00 PM",
+    "mode": "Online",
+    "message": "Please audit my site and tell me priority fixes for on-page SEO.",
+    "imageSrc": "/images/request-skills/seo.jpg"
+  },
+  {
+    "id": "recv-2",
+    "tab": "received",
+    "skillTitle": "Excel Salary Sheet Automation (VBA)",
+    "status": "approved",
+    "personName": "Maryam Iqbal",
+    "personCity": "Islamabad",
+    "personEmail": "maryam.iqbal@gmail.com",
+    "preferredTimeSlot": "Sat 2:00–4:00 PM",
+    "mode": "Online",
+    "message": "I need help building macros for salary and attendance. I can share my sheet.",
+    "imageSrc": "/images/request-skills/excel.jpg"
+  }
+]
