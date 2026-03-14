@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useState, JSX } from "react";
+import { forgotPassword } from "@/lib/api";
 
-// Defines the feedback message shape used by both submit logic and the alert banner.
 interface Message { type: "error" | "success"; text: string }
 
-// Returns the shared Tailwind classes for auth form inputs in this page.
 function inputCls(): string {
   return [
     "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900",
@@ -15,7 +14,6 @@ function inputCls(): string {
   ].join(" ");
 }
 
-// Shows submission feedback for the forgot-password request flow.
 function MessageBanner({ message }: { message: Message | null }): JSX.Element | null {
   if (!message) return null;
   return (
@@ -32,14 +30,15 @@ function MessageBanner({ message }: { message: Message | null }): JSX.Element | 
   );
 }
 
-// Renders the forgot-password page and handles reset-link request state.
+// Renders the forgot-password page and calls Strapi's reset-link endpoint.
 export default function ForgotPasswordPage(): JSX.Element {
-  const [email,   setEmail]   = useState<string>("");
-  const [message, setMessage] = useState<Message | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [email,    setEmail]    = useState<string>("");
+  const [message,  setMessage]  = useState<Message | null>(null);
+  const [loading,  setLoading]  = useState<boolean>(false);
+  const [sent,     setSent]     = useState<boolean>(false);
 
-  // Handles form submission, validates email, and simulates reset-link request feedback.
-  function onSubmit(e: React.FormEvent<HTMLFormElement>): void {
+  // Calls Strapi /auth/forgot-password which sends a reset link to the user's email.
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     setMessage(null);
 
@@ -49,13 +48,25 @@ export default function ForgotPasswordPage(): JSX.Element {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await forgotPassword(email.trim());
+      setSent(true);
       setMessage({
         type: "success",
         text: "If an account exists for this email, a reset link has been sent. Please check your inbox (and spam).",
       });
-    }, 900);
+    } catch (err) {
+      // Even on error we show a generic message to avoid email enumeration.
+      setSent(true);
+      setMessage({
+        type: "success",
+        text: "If an account exists for this email, a reset link has been sent. Please check your inbox (and spam).",
+      });
+      // Log the actual error for debugging only.
+      console.error("Forgot password error:", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -79,14 +90,24 @@ export default function ForgotPasswordPage(): JSX.Element {
             <label htmlFor="email" className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-1.5">
               Email Address
             </label>
-            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.email@example.com" className={inputCls()} />
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your.email@example.com"
+              className={inputCls()}
+              disabled={sent}
+            />
           </div>
 
-          {/* Submit action for sending the reset-link request. */}
-          <button type="submit" disabled={loading}
-            className="w-full py-2.5 rounded-xl text-white text-sm font-semibold bg-green-600 hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed">
-            {loading ? "Sending…" : "Send Reset Link"}
+          {/* Submit action — disabled after first send to prevent spam. */}
+          <button
+            type="submit"
+            disabled={loading || sent}
+            className="w-full py-2.5 rounded-xl text-white text-sm font-semibold bg-green-600 hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? "Sending…" : sent ? "Email Sent ✓" : "Send Reset Link"}
           </button>
 
           {/* Navigation links related to auth flow recovery alternatives. */}

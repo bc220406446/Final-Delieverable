@@ -1,14 +1,12 @@
 "use client";
-import { JSX } from "react";
-
+import { JSX, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { loginUser } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
-// Defines the feedback message shape used by submit logic and the alert banner.
 interface Message { type: "error" | "success"; text: string }
 
-// Returns the shared Tailwind classes for form inputs in this auth page.
 function inputCls(): string {
   return [
     "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900",
@@ -17,7 +15,6 @@ function inputCls(): string {
   ].join(" ");
 }
 
-// Renders consistent field labels for login form inputs.
 function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }): JSX.Element {
   return (
     <label htmlFor={htmlFor} className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-1.5">
@@ -26,7 +23,6 @@ function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.Re
   );
 }
 
-// Displays success or error feedback tied to the login attempt.
 function MessageBanner({ message }: { message: Message | null }): JSX.Element | null {
   if (!message) return null;
   return (
@@ -43,7 +39,6 @@ function MessageBanner({ message }: { message: Message | null }): JSX.Element | 
   );
 }
 
-// Separates primary login from secondary auth actions visually.
 function OrDivider(): JSX.Element {
   return (
     <div className="flex items-center text-sm text-gray-400">
@@ -54,9 +49,9 @@ function OrDivider(): JSX.Element {
   );
 }
 
-// Renders the login page and manages authentication form state and navigation.
 export default function LoginPage(): JSX.Element {
   const router = useRouter();
+  const { setAuthData, isAdmin } = useAuth();
 
   const [email,      setEmail]      = useState<string>("");
   const [password,   setPassword]   = useState<string>("");
@@ -64,7 +59,7 @@ export default function LoginPage(): JSX.Element {
   const [message,    setMessage]    = useState<Message | null>(null);
   const [loading,    setLoading]    = useState<boolean>(false);
 
-  // Handles login submission, validates required fields, and routes on success.
+  // Calls Strapi /auth/local, saves JWT + user, then routes based on role.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
 
@@ -75,17 +70,34 @@ export default function LoginPage(): JSX.Element {
 
     setLoading(true);
     setMessage(null);
-    setMessage({ type: "success", text: "Login successful! Redirecting to dashboard…" });
 
-    setTimeout(() => router.push("/dashboard/user"), 1200);
-    void rememberMe;
+    try {
+      const { jwt, user } = await loginUser({ identifier: email, password });
+
+      // Save to context + localStorage.
+      setAuthData(jwt, user);
+
+      setMessage({ type: "success", text: "Login successful! Redirecting…" });
+
+      // Route admin users to admin dashboard, regular users to user dashboard.
+      const destination =
+        user.role?.type === "admin" || user.role?.name?.toLowerCase() === "admin"
+          ? "/dashboard/admin"
+          : "/dashboard/user";
+
+      setTimeout(() => router.push(destination), 1000);
+    } catch (err) {
+      setMessage({ type: "error", text: err instanceof Error ? err.message : "Login failed. Please try again." });
+      setLoading(false);
+    }
+
+    void rememberMe; // rememberMe can extend token TTL in a future iteration
   }
 
   return (
     <main className="min-h-[calc(100vh-200px)] flex items-center justify-center px-5 py-16 bg-gray-50">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 max-w-md w-full p-6 md:p-8">
 
-        {/* Intro section guiding users to sign in and access their account. */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-extrabold text-green-900">Welcome Back</h1>
           <p className="text-sm text-gray-500 mt-1">Login to access your account</p>
@@ -95,21 +107,18 @@ export default function LoginPage(): JSX.Element {
 
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
 
-          {/* Email input section for user account identification. */}
           <div>
             <FieldLabel htmlFor="email">Email Address</FieldLabel>
             <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
               placeholder="your.email@example.com" className={inputCls()} />
           </div>
 
-          {/* Password input section for credential verification. */}
           <div>
             <FieldLabel htmlFor="password">Password</FieldLabel>
             <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password" className={inputCls()} />
           </div>
 
-          {/* Session preference and recovery navigation related to login. */}
           <div className="flex items-center justify-between gap-3">
             <label className="flex items-center gap-2 text-xs text-gray-600 select-none cursor-pointer">
               <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}
@@ -121,7 +130,6 @@ export default function LoginPage(): JSX.Element {
             </Link>
           </div>
 
-          {/* Primary action to authenticate and continue to the dashboard. */}
           <button type="submit" disabled={loading}
             className="w-full py-2.5 rounded-xl text-white text-sm font-semibold bg-green-600 hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed">
             {loading ? "Logging in…" : "Login"}

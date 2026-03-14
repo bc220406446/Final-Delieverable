@@ -2,12 +2,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, JSX } from "react";
-import { registerUser } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
 
+// Defines shared feedback and password-strength types for registration logic.
 interface Message { type: "error" | "success"; text: string }
 type StrengthLevel = "none" | "weak" | "medium" | "strong";
 
+// Evaluates password quality used by the strength meter in the registration form.
 function getPasswordStrength(password: string): { score: number; level: StrengthLevel; label: string } {
   if (!password) return { score: 0, level: "none", label: "" };
   let score = 0;
@@ -15,11 +15,12 @@ function getPasswordStrength(password: string): { score: number; level: Strength
   if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
   if (/\d/.test(password)) score++;
   if (/[^a-zA-Z0-9]/.test(password)) score++;
-  if (score <= 1) return { score: 1, level: "weak",   label: "Weak password"   };
-  if (score === 2) return { score: 2, level: "medium", label: "Medium strength" };
-  return              { score: 3, level: "strong", label: "Strong password"  };
+  if (score <= 1) return { score: 1, level: "weak",   label: "Weak password"     };
+  if (score === 2) return { score: 2, level: "medium", label: "Medium strength"   };
+  return              { score: 3, level: "strong", label: "Strong password"   };
 }
 
+// Returns shared Tailwind classes for register form inputs with optional error border.
 function inputCls(hasError = false): string {
   return [
     "w-full rounded-xl border px-3.5 py-2.5 text-sm text-gray-900",
@@ -29,6 +30,7 @@ function inputCls(hasError = false): string {
   ].join(" ");
 }
 
+// Renders consistent labels for registration input fields.
 function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }): JSX.Element {
   return (
     <label htmlFor={htmlFor} className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-1.5">
@@ -37,6 +39,7 @@ function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.Re
   );
 }
 
+// Displays success or validation feedback tied to registration actions.
 function MessageBanner({ message }: { message: Message | null }): JSX.Element | null {
   if (!message) return null;
   return (
@@ -53,6 +56,7 @@ function MessageBanner({ message }: { message: Message | null }): JSX.Element | 
   );
 }
 
+// Separates account-creation action from alternate auth navigation.
 function OrDivider(): JSX.Element {
   return (
     <div className="flex items-center text-sm text-gray-400">
@@ -63,9 +67,9 @@ function OrDivider(): JSX.Element {
   );
 }
 
+// Renders the register page and manages account-creation state and validation.
 export default function RegisterPage(): JSX.Element {
   const router = useRouter();
-  const { setAuthData } = useAuth();
 
   const [fullName,        setFullName]        = useState<string>("");
   const [email,           setEmail]           = useState<string>("");
@@ -78,11 +82,12 @@ export default function RegisterPage(): JSX.Element {
 
   const strength = useMemo(() => getPasswordStrength(password), [password]);
 
+  // Small helpers to standardize feedback messages across validation branches.
   function showError(text: string):   void { setMessage({ type: "error",   text }); }
   function showSuccess(text: string): void { setMessage({ type: "success", text }); }
 
-  // Validates fields then calls Strapi register API. On success saves auth state and navigates to OTP.
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
+  // Validates registration fields, sets feedback, and routes to OTP verification on success.
+  function onSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     setMessage(null);
 
@@ -94,31 +99,19 @@ export default function RegisterPage(): JSX.Element {
     if (password !== confirmPassword) { showError("Passwords do not match."); return; }
 
     setLoading(true);
-    try {
-      const { jwt, user } = await registerUser({ username: email, email, password, fullName, location });
-
-      // Persist auth state globally via context (also saves to localStorage).
-      setAuthData(jwt, user);
-
-      // Store email so OTP page can reference it for resend functionality.
-      sessionStorage.setItem("pendingEmail", email);
-
-      showSuccess("Account created! Redirecting to OTP verification…");
-      setTimeout(() => router.push("/otp-verification"), 1200);
-    } catch (err) {
-      showError(err instanceof Error ? err.message : "Registration failed. Please try again.");
-      setLoading(false);
-    }
+    showSuccess("Account created successfully! Redirecting to OTP verification…");
+    setTimeout(() => router.push("/otp-verification"), 1200);
   }
 
-  const barWidth   = strength.level === "none" ? "w-0" : strength.level === "weak" ? "w-1/3" : strength.level === "medium" ? "w-2/3" : "w-full";
-  const barColor   = strength.level === "weak" ? "bg-red-500" : strength.level === "medium" ? "bg-amber-500" : strength.level === "strong" ? "bg-green-600" : "bg-gray-200";
+  const barWidth  = strength.level === "none" ? "w-0" : strength.level === "weak" ? "w-1/3" : strength.level === "medium" ? "w-2/3" : "w-full";
+  const barColor  = strength.level === "weak" ? "bg-red-500" : strength.level === "medium" ? "bg-amber-500" : strength.level === "strong" ? "bg-green-600" : "bg-gray-200";
   const labelColor = strength.level === "weak" ? "text-red-500" : strength.level === "medium" ? "text-amber-600" : strength.level === "strong" ? "text-green-700" : "text-gray-400";
 
   return (
     <main className="min-h-[calc(100vh-200px)] flex items-center justify-center px-5 py-16 bg-gray-50">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 max-w-lg w-full p-6 md:p-8">
 
+        {/* Intro section describing account creation and onboarding entry. */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-extrabold text-green-900">Create Account</h1>
           <p className="text-sm text-gray-500 mt-1">Join our community today</p>
@@ -128,22 +121,26 @@ export default function RegisterPage(): JSX.Element {
 
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
 
+          {/* Full name section for user identity details during sign-up. */}
           <div>
             <FieldLabel htmlFor="fullName">Full Name</FieldLabel>
             <input id="fullName" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
               placeholder="John Doe" className={inputCls()} />
           </div>
 
+          {/* Email section used for account credentials and future verification. */}
           <div>
             <FieldLabel htmlFor="email">Email Address</FieldLabel>
             <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
               placeholder="your.email@example.com" className={inputCls()} />
           </div>
 
+          {/* Password section with live strength feedback for secure account setup. */}
           <div>
             <FieldLabel htmlFor="password">Password</FieldLabel>
             <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
               placeholder="Create a strong password" className={inputCls()} />
+            {/* Strength indicator related to password quality requirements. */}
             {password && (
               <div className="mt-2">
                 <p className={`text-xs font-semibold ${labelColor}`}>{strength.label}</p>
@@ -154,18 +151,21 @@ export default function RegisterPage(): JSX.Element {
             )}
           </div>
 
+          {/* Confirmation section to ensure password entry consistency. */}
           <div>
             <FieldLabel htmlFor="confirm">Confirm Password</FieldLabel>
             <input id="confirm" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Re-enter your password" className={inputCls()} />
           </div>
 
+          {/* Location section for storing user profile region information. */}
           <div>
             <FieldLabel htmlFor="location">Location</FieldLabel>
             <input id="location" type="text" value={location} onChange={(e) => setLocation(e.target.value)}
               placeholder="City, Country" className={inputCls()} />
           </div>
 
+          {/* Consent section for policies required before account creation. */}
           <label className="flex items-start gap-3 text-xs text-gray-600 select-none cursor-pointer">
             <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)}
               className="mt-0.5 h-4 w-4 accent-green-600" />
@@ -177,6 +177,7 @@ export default function RegisterPage(): JSX.Element {
             </span>
           </label>
 
+          {/* Primary action to create the account and continue onboarding. */}
           <button type="submit" disabled={loading}
             className="w-full py-2.5 rounded-xl text-white text-sm font-semibold bg-green-600 hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed">
             {loading ? "Creating…" : "Create Account"}

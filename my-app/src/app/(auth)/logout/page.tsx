@@ -2,18 +2,17 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect } from "react";
-import { JSX } from "react";
+import { useEffect, JSX } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 // Renders the logout confirmation page and performs client-side sign-out cleanup.
 export default function LogoutPage(): JSX.Element {
-  // Clears persisted auth/session data and limits back navigation to signed-in screens.
+  const { logout } = useAuth();
+
+  // Calls context logout (clears localStorage + resets global auth state)
+  // and prevents back-navigation to authenticated screens.
   useEffect(() => {
-    try {
-      localStorage.removeItem("userToken");
-      localStorage.removeItem("userData");
-      sessionStorage.clear();
-    } catch { /* SSR / privacy mode edge cases */ }
+    logout();
 
     try {
       window.history.pushState(null, "", window.location.href);
@@ -23,7 +22,7 @@ export default function LogoutPage(): JSX.Element {
     return () => {
       try { window.onpopstate = null; } catch { /* ignore */ }
     };
-  }, []);
+  }, [logout]);
 
   return (
     <main className="min-h-[calc(100vh-200px)] flex items-center justify-center px-5 py-16 bg-gray-50">

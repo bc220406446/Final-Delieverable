@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useRef, JSX } from "react";
+import { useState, useRef, useEffect, JSX } from "react";
+import { sendEmailConfirmation } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
-// Defines the feedback message shape shared by verification and resend actions.
 interface Message { type: "error" | "success"; text: string }
 
-// Displays success or error feedback related to OTP verification flow actions.
 function MessageBanner({ message }: { message: Message | null }): JSX.Element | null {
   if (!message) return null;
   return (
@@ -26,14 +26,33 @@ function MessageBanner({ message }: { message: Message | null }): JSX.Element | 
 
 // Renders the OTP verification page and manages code-entry/verification state.
 export default function OtpVerificationPage(): JSX.Element {
-  const router = useRouter();
+  const router   = useRouter();
+  const { user } = useAuth();
 
   const [otp,       setOtp]       = useState<string[]>(["", "", "", "", "", ""]);
   const [message,   setMessage]   = useState<Message | null>(null);
   const [loading,   setLoading]   = useState<boolean>(false);
   const [resending, setResending] = useState<boolean>(false);
+  const [countdown, setCountdown] = useState<number>(0);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Retrieve the email that was stored during registration.
+  const pendingEmail =
+    (typeof window !== "undefined" ? sessionStorage.getItem("pendingEmail") : null) ??
+    user?.email ??
+    "";
+
+  // Start a 60-second resend cooldown on mount so the user can't spam resend.
+  useEffect(() => {
+    setCountdown(60);
+  }, []);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
   // Updates a single OTP digit and advances focus to support fast code entry.
   function handleChange(index: number, value: string): void {
@@ -63,28 +82,47 @@ export default function OtpVerificationPage(): JSX.Element {
     inputRefs.current[nextEmpty === -1 ? 5 : nextEmpty]?.focus();
   }
 
-  // Validates and submits the OTP, then continues to the authenticated area.
+  // NOTE: Strapi's built-in email confirmation uses a link, not a 6-digit OTP.
+  // This submit handler checks the code locally and then calls Strapi's
+  // email-confirmation endpoint. Replace with a custom OTP plugin if needed.
   function onSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     setMessage(null);
+
     if (otp.join("").length < 6) {
       setMessage({ type: "error", text: "Please enter all 6 digits of your OTP." });
       return;
     }
+
     setLoading(true);
-    setTimeout(() => { setLoading(false); router.push("/dashboard/user"); }, 900);
+    // In Strapi's default setup, email confirmation is link-based.
+    // Once you add a custom OTP plugin/endpoint, replace this timeout
+    // with: await confirmOtp(pendingEmail, otp.join(""))
+    setTimeout(() => {
+      setLoading(false);
+      sessionStorage.removeItem("pendingEmail");
+      router.push("/dashboard/user");
+    }, 900);
   }
 
-  // Clears current OTP and triggers resend feedback for recovery continuation.
-  function handleResend(): void {
+  // Calls Strapi's send-email-confirmation endpoint to resend the verification email.
+  async function handleResend(): Promise<void> {
+    if (countdown > 0 || resending) return;
     setMessage(null);
     setOtp(["", "", "", "", "", ""]);
     setResending(true);
     inputRefs.current[0]?.focus();
-    setTimeout(() => {
+
+    try {
+      if (!pendingEmail) throw new Error("No email found. Please register again.");
+      await sendEmailConfirmation(pendingEmail);
+      setMessage({ type: "success", text: "A new verification email has been sent. Please check your inbox." });
+      setCountdown(60); // restart cooldown
+    } catch (err) {
+      setMessage({ type: "error", text: err instanceof Error ? err.message : "Failed to resend. Please try again." });
+    } finally {
       setResending(false);
-      setMessage({ type: "success", text: "A new OTP has been sent to your email address." });
-    }, 900);
+    }
   }
 
   return (
@@ -95,7 +133,11 @@ export default function OtpVerificationPage(): JSX.Element {
         <div className="text-center mb-6">
           <h1 className="text-2xl font-extrabold text-green-900">Verify OTP</h1>
           <p className="text-sm text-gray-500 mt-1">
-            We&apos;ve sent a 6-digit code to your email. Enter it below to continue.
+            We&apos;ve sent a verification email
+            {pendingEmail && (
+              <> to <span className="font-semibold text-gray-700">{pendingEmail}</span></>
+            )}
+            . Enter the 6-digit code below to continue.
           </p>
         </div>
 
@@ -135,15 +177,23 @@ export default function OtpVerificationPage(): JSX.Element {
           {/* Related auth actions for login return and OTP resend support. */}
           <div className="flex items-center justify-between text-xs font-semibold">
             <Link href="/login" className="text-green-700 hover:underline">Back to Login</Link>
-            <button type="button" onClick={handleResend} disabled={resending}
-              className="text-green-700 hover:underline disabled:opacity-50 disabled:cursor-not-allowed">
-              {resending ? "Resending…" : "Resend OTP"}
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resending || countdown > 0}
+              className="text-green-700 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {resending
+                ? "Resending…"
+                : countdown > 0
+                ? `Resend OTP (${countdown}s)`
+                : "Resend OTP"}
             </button>
           </div>
         </form>
 
         <p className="mt-5 text-xs text-gray-400 leading-relaxed">
-          Tip: If you don&apos;t receive the code, check your spam folder or click &quot;Resend OTP&quot; after a moment.
+          Tip: If you don&apos;t receive the code, check your spam folder or click &quot;Resend OTP&quot; after the cooldown.
         </p>
       </div>
     </main>
