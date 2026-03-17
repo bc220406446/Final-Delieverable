@@ -1,18 +1,11 @@
 // Core API client for communicating with Strapi backend.
-// All auth and data requests go through this file.
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
-// Shape of a Strapi API error response.
 interface StrapiError {
-  error: {
-    status: number;
-    name: string;
-    message: string;
-  };
+  error: { status: number; name: string; message: string };
 }
 
-// Generic fetch wrapper that attaches auth token and handles Strapi error format.
 async function strapiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
@@ -22,27 +15,19 @@ async function strapiRequest<T>(
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${STRAPI_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
+  const res  = await fetch(`${STRAPI_URL}${endpoint}`, { ...options, headers });
   const data = await res.json();
 
   if (!res.ok) {
     const err = data as StrapiError;
     throw new Error(err?.error?.message ?? "Something went wrong. Please try again.");
   }
-
   return data as T;
 }
 
-// ─── Auth Types ───────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface StrapiUser {
   id: number;
@@ -50,12 +35,7 @@ export interface StrapiUser {
   email: string;
   confirmed: boolean;
   blocked: boolean;
-  role: {
-    id: number;
-    name: string;
-    type: string;
-  };
-  // Custom fields added to the User content-type in Strapi
+  role: { id: number; name: string; type: string };
   fullName?: string;
   location?: string;
 }
@@ -66,7 +46,6 @@ export interface AuthResponse {
 }
 
 export interface RegisterPayload {
-  username: string;   // We use email as username for simplicity
   email: string;
   password: string;
   fullName: string;
@@ -74,28 +53,26 @@ export interface RegisterPayload {
 }
 
 export interface LoginPayload {
-  identifier: string; // email or username
+  identifier: string;
   password: string;
 }
 
-// ─── Auth API ─────────────────────────────────────────────────────────────────
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 
-// Registers a new user via Strapi's built-in /auth/local/register endpoint.
+// Registers a new user. The Strapi extension automatically sends the OTP email.
 export async function registerUser(payload: RegisterPayload): Promise<AuthResponse> {
   return strapiRequest<AuthResponse>("/api/auth/local/register", {
     method: "POST",
     body: JSON.stringify({
-      username: payload.email, // use email as username
-      email: payload.email,
+      username: payload.email,
+      email:    payload.email,
       password: payload.password,
-      // Strapi passes extra fields to the user model if they exist
       fullName: payload.fullName,
       location: payload.location,
     }),
   });
 }
 
-// Logs in an existing user via Strapi's /auth/local endpoint.
 export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
   return strapiRequest<AuthResponse>("/api/auth/local", {
     method: "POST",
@@ -103,7 +80,6 @@ export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
   });
 }
 
-// Sends a forgot-password email via Strapi's built-in email reset.
 export async function forgotPassword(email: string): Promise<{ ok: boolean }> {
   return strapiRequest<{ ok: boolean }>("/api/auth/forgot-password", {
     method: "POST",
@@ -111,11 +87,8 @@ export async function forgotPassword(email: string): Promise<{ ok: boolean }> {
   });
 }
 
-// Resets password using the code from the reset email.
 export async function resetPassword(
-  code: string,
-  password: string,
-  passwordConfirmation: string
+  code: string, password: string, passwordConfirmation: string
 ): Promise<AuthResponse> {
   return strapiRequest<AuthResponse>("/api/auth/reset-password", {
     method: "POST",
@@ -123,27 +96,48 @@ export async function resetPassword(
   });
 }
 
-// Sends the email confirmation OTP/link (Strapi built-in).
-export async function sendEmailConfirmation(email: string): Promise<{ sent: boolean }> {
-  return strapiRequest<{ sent: boolean }>("/api/auth/send-email-confirmation", {
+export async function getMe(token: string): Promise<StrapiUser> {
+  return strapiRequest<StrapiUser>("/api/users/me?populate=role", {}, token);
+}
+
+export async function updateUser(
+  id: number,
+  data: Partial<Pick<StrapiUser, "fullName" | "location" | "username">>,
+  token: string
+): Promise<StrapiUser> {
+  return strapiRequest<StrapiUser>(
+    `/api/users/${id}`,
+    { method: "PUT", body: JSON.stringify(data) },
+    token
+  );
+}
+
+// ─── Custom OTP API ───────────────────────────────────────────────────────────
+
+// Resends the OTP email to the given address (called from OTP page resend button).
+export async function resendOtp(email: string): Promise<{ ok: boolean }> {
+  return strapiRequest<{ ok: boolean }>("/api/otp/send", {
     method: "POST",
     body: JSON.stringify({ email }),
   });
 }
 
-// Confirms the user's email using the token from the confirmation email.
-export async function confirmEmail(confirmationToken: string): Promise<AuthResponse> {
+// Verifies the 6-digit code and returns a JWT + confirmed user on success.
+export async function verifyOtp(email: string, code: string): Promise<AuthResponse> {
+  return strapiRequest<AuthResponse>("/api/otp/verify", {
+    method: "POST",
+    body: JSON.stringify({ email, code }),
+  });
+}
+
+// Confirms email via the token from the link in the email (used by /confirm-email page).
+export async function confirmEmailToken(token: string): Promise<{ jwt: string; user: StrapiUser }> {
   const res = await fetch(
-    `${STRAPI_URL}/api/auth/email-confirmation?confirmation=${confirmationToken}`
+    `${STRAPI_URL}/api/auth/email-confirmation?confirmation=${token}`
   );
   if (!res.ok) {
     const data = (await res.json()) as StrapiError;
     throw new Error(data?.error?.message ?? "Email confirmation failed.");
   }
-  return res.json() as Promise<AuthResponse>;
-}
-
-// Fetches the currently authenticated user's profile.
-export async function getMe(token: string): Promise<StrapiUser> {
-  return strapiRequest<StrapiUser>("/api/users/me?populate=role", {}, token);
+  return res.json();
 }
