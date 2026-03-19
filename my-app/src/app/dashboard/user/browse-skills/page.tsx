@@ -1,52 +1,34 @@
-﻿// Shows skill listings users can browse and filter.
+// Shows approved skill listings fetched from Strapi with filter support.
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import { getApprovedSkills, StrapiSkill } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import SendRequestModal, {
   SkillForRequest,
   BookingDraft,
 } from "@/app/components/dashboard/user/request/SendRequestModal";
-import skillsData from "@/data/skills.json";
 
-// Types for browse cards and filter state.
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
-type SkillLevel = "Beginner" | "Intermediate" | "Expert";
-
-type Skill = {
-  id: string;
-  title: string;
-  description: string;
-  providerName: string;
-  providerEmail: string;
-  category: string;
-  level: SkillLevel;
-  location: string;
-  availability: string;
-  imageSrc: string;
+// Category labels matching Strapi enum → display label
+const CATEGORY_LABELS: Record<string, string> = {
+  Cognitive:      "Cognitive / Intellectual Skills",
+  Technical:      "Technical / Hard Skills",
+  Interpersonal:  "Interpersonal / People Skills",
+  Personal:       "Personal / Self-Management Skills",
+  Organizational: "Organizational / Management Skills",
+  Digital:        "Digital / IT Skills",
+  Language:       "Language / Communication",
 };
-
-// Cast imported JSON to typed array
-const SKILLS: Skill[] = skillsData as Skill[];
-
-// Static labels and browse filter options.
-
-const CATEGORIES = [
-  "Cognitive / Intellectual Skills",
-  "Technical / Hard Skills",
-  "Interpersonal / People Skills",
-  "Personal / Self-Management Skills",
-  "Organizational / Management Skills",
-  "Digital / IT Skills",
-  "Language / Communication Skills",
-] as const;
 
 const CITIES = [
   "Islamabad", "Rawalpindi", "Lahore",
   "Karachi",   "Faisalabad", "Peshawar",
+  "Multan",    "Quetta",     "Gujranwala",
+  "Online",
 ] as const;
-
-// Helpers for search and category filtering.
 
 function inputCls(): string {
   return [
@@ -69,61 +51,93 @@ function Pill({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
       <span className="font-semibold text-gray-700">{label}:</span>{" "}
-      <span className="wrap-break-word text-gray-600">{value}</span>
+      <span className="break-words text-gray-600">{value || "—"}</span>
     </div>
   );
 }
 
-// Renders the browse skills page.
+// Resolves Strapi image URL to absolute.
+function resolveImage(skill: StrapiSkill): string | null {
+  const img = skill.image as any;
+  if (!img) return null;
+  const url = img.url ?? img.formats?.medium?.url ?? img.formats?.thumbnail?.url ?? null;
+  if (!url) return null;
+  return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
+}
 
 export default function BrowseSkillsPage() {
-  const [category, setCategory] = useState("");
-  const [city, setCity] = useState("");
-  const [level, setLevel] = useState("");
-  const [q, setQ] = useState("");
+  const { token, user } = useAuth();
+  const [skills,      setSkills]      = useState<StrapiSkill[]>([]);
+  const [loading,     setLoading]     = useState(true);
+  const [error,       setError]       = useState<string | null>(null);
 
-  const [activeSkill, setActiveSkill] = useState<Skill | null>(null);
-  const [sent, setSent] = useState<Record<string, boolean>>({});
+  const [category,    setCategory]    = useState("");
+  const [city,        setCity]        = useState("");
+  const [level,       setLevel]       = useState("");
+  const [q,           setQ]           = useState("");
+
+  const [activeSkill, setActiveSkill] = useState<StrapiSkill | null>(null);
+  const [sent,        setSent]        = useState<Record<number, boolean>>({});
+
+  const fetchSkills = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (!token) return;
+      const data = await getApprovedSkills(token);
+      // Exclude own skills — user should not request their own skills
+      const others = data.filter(
+        (s) => s.provider_email?.toLowerCase() !== user?.email?.toLowerCase()
+      );
+      setSkills(others);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load skills.");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => { fetchSkills(); }, [fetchSkills]);
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
-    return SKILLS.filter((s) => {
-      const matchCategory = category ? s.category === category : true;
-      const matchCity     = city     ? s.location === city     : true;
-      const matchLevel    = level    ? s.level === level        : true;
+    return skills.filter((s) => {
+      // category filter compares against Strapi enum value e.g. "Cognitive"
+      const matchCategory = category ? s.category === category          : true;
+      const matchCity     = city     ? s.location  === city             : true;
+      const matchLevel    = level    ? s.level      === level            : true;
       const matchQuery    = query
         ? s.title.toLowerCase().includes(query) ||
-          s.providerName.toLowerCase().includes(query) ||
-          s.providerEmail.toLowerCase().includes(query)
+          s.provider_name.toLowerCase().includes(query) ||
+          s.provider_email.toLowerCase().includes(query)
         : true;
       return matchCategory && matchCity && matchLevel && matchQuery;
     });
-  }, [category, city, level, q]);
+  }, [skills, category, city, level, q]);
 
   function handleSend(skillId: string, _draft: BookingDraft) {
-    setSent((prev) => ({ ...prev, [skillId]: true }));
+    setSent((prev) => ({ ...prev, [Number(skillId)]: true }));
     setActiveSkill(null);
   }
 
   const skillForModal: SkillForRequest | null = activeSkill
     ? {
-        id:            activeSkill.id,
+        id:            String(activeSkill.id),
         title:         activeSkill.title,
-        providerName:  activeSkill.providerName,
-        providerEmail: activeSkill.providerEmail,
+        providerName:  activeSkill.provider_name,
+        providerEmail: activeSkill.provider_email,
         availability:  activeSkill.availability,
       }
     : null;
 
   return (
     <div>
-      {/* Heading section describing discovery and filtering context. */}
       <h1 className="text-2xl md:text-3xl font-extrabold text-green-900">Browse Skills</h1>
       <p className="mt-2 text-sm text-gray-600">
-        Explore skills from the community. Use filters to find the best match.
+        Explore approved skills from the community. Use filters to find the best match.
       </p>
 
-      {/* Filter controls section for category, location, level, and search. */}
+      {/* Filters */}
       <section className="mt-6 bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
 
@@ -131,7 +145,9 @@ export default function BrowseSkillsPage() {
             <FilterLabel>Category</FilterLabel>
             <select className={inputCls()} value={category} onChange={(e) => setCategory(e.target.value)}>
               <option value="">All Categories</option>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              {Object.entries(CATEGORY_LABELS).map(([val, label]) => (
+                <option key={val} value={val}>{label}</option>
+              ))}
             </select>
           </div>
 
@@ -157,59 +173,67 @@ export default function BrowseSkillsPage() {
             <FilterLabel>Search</FilterLabel>
             <input
               className={inputCls()}
-              placeholder="Search skill"
+              placeholder="Search skill or provider"
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
           </div>
         </div>
 
-        <p className="mt-3 text-sm text-gray-600">
-          Showing <span className="font-semibold">{filtered.length}</span> of{" "}
-          <span className="font-semibold">{SKILLS.length}</span> skills.
-        </p>
+        {!loading && !error && (
+          <p className="mt-3 text-sm text-gray-600">
+            Showing <span className="font-semibold">{filtered.length}</span> of{" "}
+            <span className="font-semibold">{skills.length}</span> skills.
+          </p>
+        )}
       </section>
 
-      {/* Skill results section showing cards that match active filters. */}
+      {/* Results */}
       <section className="mt-4 flex flex-col gap-4">
-        {filtered.length === 0 ? (
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 text-center text-sm text-gray-400">
+        {loading ? (
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-10 text-center text-sm text-gray-400">
+            Loading skills…
+          </div>
+        ) : error ? (
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-10 text-center text-sm text-red-500">
+            {error}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-10 text-center text-sm text-gray-400">
             No skills match your filters.
           </div>
         ) : (
           filtered.map((skill) => {
-            const isSent = !!sent[skill.id];
+            const isSent   = !!sent[skill.id];
+            const imageUrl = resolveImage(skill);
             return (
               <div key={skill.id} className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5">
                 <div className="flex flex-col md:flex-row gap-4">
 
                   {/* Thumbnail */}
                   <div className="relative w-full md:w-[220px] h-[160px] rounded-2xl overflow-hidden bg-green-50 shrink-0">
-                    <Image
-                      src={skill.imageSrc}
-                      alt={skill.title}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
+                    {imageUrl ? (
+                      <Image src={imageUrl} alt={skill.title} fill className="object-cover" unoptimized />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl">🖼</div>
+                    )}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="text-base font-extrabold text-gray-900 leading-snug">
                       {skill.title}
                     </div>
-
                     <p className="mt-1.5 text-sm text-gray-600 leading-relaxed">
                       {skill.description}
                     </p>
 
                     <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <Pill label="Offered By"   value={skill.providerName}  />
-                      <Pill label="Email"        value={skill.providerEmail} />
-                      <Pill label="Category"     value={skill.category}      />
-                      <Pill label="Level"        value={skill.level}         />
-                      <Pill label="Location"     value={skill.location}      />
-                      <Pill label="Availability" value={skill.availability}  />
+                      <Pill label="Offered By"   value={skill.provider_name}                          />
+                      <Pill label="Email"        value={skill.provider_email}                         />
+                      <Pill label="Category"     value={CATEGORY_LABELS[skill.category] ?? skill.category} />
+                      <Pill label="Level"        value={skill.level}                                  />
+                      <Pill label="Location"     value={skill.location}                               />
+                      <Pill label="Availability" value={skill.availability}                           />
                     </div>
 
                     <div className="mt-4">
@@ -234,7 +258,6 @@ export default function BrowseSkillsPage() {
         )}
       </section>
 
-      {/* Request modal section for initiating a booking with selected skill provider. */}
       {skillForModal && (
         <SendRequestModal
           skill={skillForModal}

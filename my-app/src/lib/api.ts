@@ -192,8 +192,9 @@ export interface StrapiSkill {
   image?: { url: string } | null;
 }
 
+// Strapi v5 REST returns flat objects: { id, title, ... } not { id, attributes: {...} }
 export interface StrapiSkillsResponse {
-  data: { id: number; attributes: Omit<StrapiSkill, "id"> }[];
+  data: (StrapiSkill & { id: number })[];
   meta: { pagination: { total: number } };
 }
 
@@ -218,11 +219,10 @@ export async function getSkillsByState(
     token
   );
 
-  return res.data.map((item) => ({
-    id:    item.id,
-    ...item.attributes,
-    // REST API wraps media in data.attributes
-    image: (item.attributes as any).image?.data?.attributes ?? null,
+  return res.data.map((item: any) => ({
+    ...item,
+    // Strapi v5: image is flat { id, url, ... } not wrapped in data.attributes
+    image: item.image?.url ? item.image : item.image?.data?.attributes ?? item.image ?? null,
   }));
 }
 
@@ -243,6 +243,29 @@ export async function deleteSkill(id: number, token: string): Promise<void> {
   await strapiRequest(`/api/skills/${id}`, { method: "DELETE" }, token);
 }
 
+
+// Fetches all approved (published) skills for the browse page.
+// No auth required — public endpoint.
+// Fetches approved skills — requires authenticated token (Authenticated role only).
+export async function getApprovedSkills(token: string): Promise<StrapiSkill[]> {
+  const params = new URLSearchParams({
+    "filters[state][$eq]": "approved",
+    "populate":            "image",
+    "pagination[limit]":   "200",
+  });
+
+  const res = await strapiRequest<StrapiSkillsResponse>(
+    `/api/skills?${params.toString()}`,
+    {},
+    token
+  );
+
+  return res.data.map((item: any) => ({
+    ...item,
+    image: item.image?.url ? item.image : item.image?.data?.attributes ?? item.image ?? null,
+  }));
+}
+
 // ─── User Skill API ───────────────────────────────────────────────────────────
 
 // Fetches skills belonging to the currently logged-in user.
@@ -259,10 +282,9 @@ export async function getMySkills(token: string): Promise<StrapiSkill[]> {
     token
   );
 
-  // entityService populate returns image directly (not REST data.attributes wrapper)
   return res.data.map((item: any) => ({
-    id:    item.id,
     ...(item.attributes ?? item),
+    id:    item.id ?? (item.attributes ?? item).id,
     image: item.attributes?.image?.data?.attributes
         ?? item.attributes?.image
         ?? item.image
