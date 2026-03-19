@@ -23,7 +23,7 @@ export interface ExistingSkill {
 
 interface Props {
   skill: ExistingSkill;
-  onSave: (id: string, updated: SkillPayload) => void;
+  onSave: (id: string, updated: SkillPayload) => void | Promise<void>;
   onClose: () => void;
 }
 
@@ -32,7 +32,7 @@ export default function EditSkillModal({ skill, onSave, onClose }: Props): JSX.E
   const initialForm: SkillFormState = {
     title:        skill.title,
     desc:         skill.description,
-    categoryId:   CATEGORIES.find((c) => c.label === skill.category)?.id ?? "",
+    categoryId:   skill.category, // skill.category is already the enum value
     level:        skill.level,
     city:         skill.location,
     slots:        skill.availability,
@@ -58,19 +58,20 @@ export default function EditSkillModal({ skill, onSave, onClose }: Props): JSX.E
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validateSkillForm(form);
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
-    onSave(skill.id, {
+    await onSave(skill.id, {
       title:        form.title.trim(),
       description:  form.desc.trim(),
-      category:     selectedCategory,
+      category:     form.categoryId, // enum value e.g. "Cognitive" not the label
       level:        form.level as "Beginner" | "Intermediate" | "Expert",
       location:     form.city || "Online",
       availability: form.slots.trim(),
       imageSrc:     form.imagePreview ?? skill.imageSrc,
+      imageFile:    form.imageFile,
     });
   }
 

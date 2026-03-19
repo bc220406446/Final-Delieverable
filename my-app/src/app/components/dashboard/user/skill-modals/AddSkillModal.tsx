@@ -11,7 +11,7 @@ import {
 } from "./skillModalTypes";
 
 interface Props {
-  onSave: (skill: SkillPayload) => void;
+  onSave: (skill: SkillPayload) => void | Promise<void>;
   onClose: () => void;
 }
 
@@ -21,8 +21,9 @@ const EMPTY_FORM: SkillFormState = {
 };
 
 export default function AddSkillModal({ onSave, onClose }: Props): JSX.Element {
-  const [form, setForm] = useState<SkillFormState>(EMPTY_FORM);
-  const [errors, setErrors] = useState<ReturnType<typeof validateSkillForm>>({});
+  const [form,    setForm]    = useState<SkillFormState>(EMPTY_FORM);
+  const [errors,  setErrors]  = useState<ReturnType<typeof validateSkillForm>>({});
+  const [saving,  setSaving]  = useState(false);
   const selectedCategory = useMemo(
     () => CATEGORIES.find((c) => c.id === form.categoryId)?.label ?? "",
     [form.categoryId]
@@ -39,20 +40,24 @@ export default function AddSkillModal({ onSave, onClose }: Props): JSX.Element {
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validateSkillForm(form);
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
-    onSave({
+    setSaving(true);
+    try {
+    await onSave({
       title:        form.title.trim(),
       description:  form.desc.trim(),
-      category:     selectedCategory,
+      category:     form.categoryId, // matches Strapi enum: "Cognitive", "Technical" etc.
       level:        form.level as "Beginner" | "Intermediate" | "Expert",
       location:     form.city || "Online",
       availability: form.slots.trim(),
       imageSrc:     form.imagePreview ?? "/images/skills/default.jpg",
+      imageFile:    form.imageFile,
     });
+    } finally { setSaving(false); }
   }
 
   return (
@@ -88,9 +93,10 @@ export default function AddSkillModal({ onSave, onClose }: Props): JSX.Element {
             <div className="px-6 pb-6 flex gap-3">
               <button
                 type="submit"
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-2.5 rounded-xl transition"
+                disabled={saving}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-2.5 rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Submit Skill
+                {saving ? "Submitting…" : "Submit Skill"}
               </button>
               <button
                 type="button"

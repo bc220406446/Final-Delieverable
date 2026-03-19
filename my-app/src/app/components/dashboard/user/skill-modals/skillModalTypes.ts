@@ -14,7 +14,7 @@ export interface SkillFormState {
   level: SkillLevel;
   city: string;
   slots: string;
-  imagePreview: string | null; // base64 or object URL
+  imagePreview: string | null;
   imageFile: File | null;
 }
 
@@ -33,17 +33,18 @@ export interface SkillPayload {
   level: "Beginner" | "Intermediate" | "Expert";
   location: string;
   availability: string;
-  imageSrc: string; // object URL or existing path
+  imageSrc: string;
+  imageFile?: File | null; // actual File for upload to Strapi
 }
 
 export const CATEGORIES: Category[] = [
-  { id: "cognitive",      label: "Cognitive / Intellectual Skills"    },
-  { id: "technical",      label: "Technical / Hard Skills"            },
-  { id: "interpersonal",  label: "Interpersonal / People Skills"      },
-  { id: "personal",       label: "Personal / Self-Management Skills"  },
-  { id: "organizational", label: "Organizational / Management Skills" },
-  { id: "digital",        label: "Digital / IT Skills"                },
-  { id: "language",       label: "Language / Communication"           },
+  { id: "Cognitive",      label: "Cognitive / Intellectual Skills"    },
+  { id: "Technical",      label: "Technical / Hard Skills"            },
+  { id: "Interpersonal",  label: "Interpersonal / People Skills"      },
+  { id: "Personal",       label: "Personal / Self-Management Skills"  },
+  { id: "Organizational", label: "Organizational / Management Skills" },
+  { id: "Digital",        label: "Digital / IT Skills"                },
+  { id: "Language",       label: "Language / Communication"           },
 ];
 
 export const CITIES = [
