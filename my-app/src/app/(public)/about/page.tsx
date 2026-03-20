@@ -15,7 +15,7 @@ function ProblemSolutionBlock({ problem, solution }: CmsProblemBlock): JSX.Eleme
         <div className="text-[11px] font-extrabold tracking-wide uppercase text-red-500 mb-2">Problem</div>
         <p className="text-sm text-gray-600 leading-relaxed">{problem}</p>
       </div>
-      <div className="rounded-2xl shadow-sm border border-green-200 p-6 bg-gradient-to-br from-green-50 to-emerald-50">
+      <div className="rounded-2xl shadow-sm border border-green-200 p-6 bg-linear-to-br from-green-50 to-emerald-50">
         <div className="text-[11px] font-extrabold tracking-wide uppercase text-green-700 mb-2">Solution</div>
         <p className="text-sm text-gray-700 leading-relaxed">{solution}</p>
       </div>
@@ -56,7 +56,7 @@ export default async function AboutPage(): Promise<JSX.Element> {
 
   return (
     <main className="bg-gray-50 text-gray-800">
-      <section className="bg-gradient-to-br from-green-700 to-green-500 text-white py-20 px-5">
+      <section className="bg-linear-to-br from-green-700 to-green-500 text-white py-20 px-5">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold leading-tight">{data.hero_title}</h1>

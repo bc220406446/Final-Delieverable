@@ -62,7 +62,7 @@ export default function FaqsPage(): JSX.Element {
 
   return (
     <main className="bg-gray-50 text-gray-800">
-      <section className="bg-gradient-to-br from-green-700 to-green-500 text-white py-20 px-5">
+      <section className="bg-linear-to-br from-green-700 to-green-500 text-white py-20 px-5">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold leading-tight">{data.hero_title}</h1>
