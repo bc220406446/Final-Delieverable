@@ -83,7 +83,7 @@ export default function EditProfileModal({
       // Step 3 — fetch fresh user data and update global auth context
       // so sidebar name/avatar and other pages reflect the change immediately.
       const freshUser = await getMe(token);
-      setAuthData(token, freshUser);
+      await setAuthData(token, freshUser);
 
       // Step 4 — notify parent page for local optimistic update
       onSave({

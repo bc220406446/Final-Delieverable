@@ -16,10 +16,11 @@ const NAV_LINKS = [
 
 // Dashboard icon button — goes to user dashboard if logged in, else login page.
 function DashboardButton(): JSX.Element {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   function handleClick() {
+    if (isLoading) return;
     router.push(isAuthenticated ? "/dashboard/user" : "/login");
   }
 
@@ -36,9 +37,26 @@ function DashboardButton(): JSX.Element {
   );
 }
 
+// Logout button — clears auth state then redirects to /logout confirmation page.
+function LogoutButton({ className, children }: { className: string; children: React.ReactNode }): JSX.Element {
+  const { logout } = useAuth();
+  const router = useRouter();
+
+  async function handleLogout() {
+    await logout();              // clears localStorage + cookie (awaitable now)
+    router.push("/logout");      // show confirmation page
+  }
+
+  return (
+    <button type="button" onClick={handleLogout} className={className}>
+      {children}
+    </button>
+  );
+}
+
 // Slide-in mobile navigation menu.
 function MobileMenu(): JSX.Element {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [open, setOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -122,22 +140,23 @@ function MobileMenu(): JSX.Element {
 
         {/* Auth buttons */}
         <div className="px-4 py-5 border-t border-gray-100 flex flex-col gap-2.5">
-          {isAuthenticated ? (
-            <Link href="/dashboard/user/logout" onClick={() => setOpen(false)}
-              className="w-full text-center bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-semibold text-sm py-2.5 rounded-xl transition">
-              Logout
-            </Link>
-          ) : (
-            <>
-              <Link href="/login" onClick={() => setOpen(false)}
-                className="w-full text-center border border-gray-200 hover:border-green-600 hover:text-green-700 text-gray-700 font-semibold text-sm py-2.5 rounded-xl transition">
-                Login
-              </Link>
-              <Link href="/register" onClick={() => setOpen(false)}
-                className="w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-2.5 rounded-xl transition">
-                Sign Up
-              </Link>
-            </>
+          {!isLoading && (
+            isAuthenticated ? (
+              <LogoutButton className="w-full text-center bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-semibold text-sm py-2.5 rounded-xl transition">
+                Logout
+              </LogoutButton>
+            ) : (
+              <>
+                <Link href="/login" onClick={() => setOpen(false)}
+                  className="w-full text-center border border-gray-200 hover:border-green-600 hover:text-green-700 text-gray-700 font-semibold text-sm py-2.5 rounded-xl transition">
+                  Login
+                </Link>
+                <Link href="/register" onClick={() => setOpen(false)}
+                  className="w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-2.5 rounded-xl transition">
+                  Sign Up
+                </Link>
+              </>
+            )
           )}
         </div>
       </div>
@@ -147,7 +166,7 @@ function MobileMenu(): JSX.Element {
 
 // Main public header.
 export default function Header(): JSX.Element {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <header className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
@@ -171,22 +190,24 @@ export default function Header(): JSX.Element {
         {/* Desktop right actions */}
         <div className="hidden md:flex items-center gap-2">
           <DashboardButton />
-          {isAuthenticated ? (
-            <Link href="/logout"
-              className="inline-flex items-center justify-center border border-red-200 hover:bg-red-50 text-red-600 font-semibold text-sm px-4 py-2.5 rounded-xl transition">
-              Logout
-            </Link>
-          ) : (
-            <>
-              <Link href="/login"
-                className="inline-flex items-center justify-center border border-gray-200 hover:border-green-600 hover:text-green-700 text-gray-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition">
-                Login
-              </Link>
-              <Link href="/register"
-                className="inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition">
-                Sign Up
-              </Link>
-            </>
+          {/* Wait for localStorage hydration before showing auth buttons */}
+          {!isLoading && (
+            isAuthenticated ? (
+              <LogoutButton className="inline-flex items-center justify-center border border-red-200 hover:bg-red-50 text-red-600 font-semibold text-sm px-4 py-2.5 rounded-xl transition">
+                Logout
+              </LogoutButton>
+            ) : (
+              <>
+                <Link href="/login"
+                  className="inline-flex items-center justify-center border border-gray-200 hover:border-green-600 hover:text-green-700 text-gray-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition">
+                  Login
+                </Link>
+                <Link href="/register"
+                  className="inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition">
+                  Sign Up
+                </Link>
+              </>
+            )
           )}
         </div>
 

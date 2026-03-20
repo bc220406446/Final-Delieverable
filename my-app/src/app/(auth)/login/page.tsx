@@ -79,7 +79,7 @@ export default function LoginPage(): JSX.Element {
       // Fetch full user with profileImage + bio + location populated.
       // The raw login response doesn't include relations.
       const fullUser = await getMe(jwt);
-      setAuthData(jwt, fullUser ?? user);
+      setAuthData(jwt, fullUser ?? user, rememberMe);
 
       setMessage({ type: "success", text: "Login successful! Redirecting…" });
 
@@ -95,7 +95,6 @@ export default function LoginPage(): JSX.Element {
       setLoading(false);
     }
 
-    void rememberMe; // rememberMe can extend token TTL in a future iteration
   }
 
   return (

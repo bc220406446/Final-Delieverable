@@ -113,7 +113,7 @@ export default function RegisterPage(): JSX.Element {
     setLoading(true);
     try {
       const { jwt, user } = await registerUser({ username: email, email, password, fullName, location });
-      setAuthData(jwt, user);
+      await setAuthData(jwt, user);
       sessionStorage.setItem("pendingEmail", email);
       setMessage({ type: "success", text: "Account created! Redirecting to OTP verification…" });
       setTimeout(() => router.push("/otp-verification"), 1200);

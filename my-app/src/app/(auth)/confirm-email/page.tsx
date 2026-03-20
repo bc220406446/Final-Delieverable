@@ -28,7 +28,7 @@ export default function ConfirmEmailPage(): JSX.Element {
 
     verifyOtp(decodeURIComponent(email), code)
       .then(({ jwt, user }) => {
-        setAuthData(jwt, user);
+        await setAuthData(jwt, user);
         sessionStorage.removeItem("pendingEmail");
         setStatus("success");
         // Redirect to dashboard after a short success flash.
