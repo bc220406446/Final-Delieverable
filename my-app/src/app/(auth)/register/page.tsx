@@ -1,24 +1,13 @@
 "use client";
+
 import Link from "next/link";
+import { useState, useMemo, JSX } from "react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, JSX } from "react";
 import { registerUser } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { getPasswordStrength } from "@/lib/passwordStrength";
 
 interface Message { type: "error" | "success"; text: string }
-type StrengthLevel = "none" | "weak" | "medium" | "strong";
-
-function getPasswordStrength(password: string): { score: number; level: StrengthLevel; label: string } {
-  if (!password) return { score: 0, level: "none", label: "" };
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-  if (/\d/.test(password)) score++;
-  if (/[^a-zA-Z0-9]/.test(password)) score++;
-  if (score <= 1) return { score: 1, level: "weak",   label: "Weak password"   };
-  if (score === 2) return { score: 2, level: "medium", label: "Medium strength" };
-  return              { score: 3, level: "strong", label: "Strong password"  };
-}
 
 function inputCls(hasError = false): string {
   return [
@@ -40,16 +29,49 @@ function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.Re
 function MessageBanner({ message }: { message: Message | null }): JSX.Element | null {
   if (!message) return null;
   return (
-    <div
-      className={`mb-5 rounded-xl border px-4 py-3 text-sm ${
-        message.type === "error"
-          ? "bg-red-50 border-red-200 text-red-700"
-          : "bg-green-50 border-green-200 text-green-700"
-      }`}
-      role="alert"
-    >
-      {message.text}
+    <div className={`mb-5 rounded-xl border px-4 py-3 text-sm ${
+      message.type === "error" ? "bg-red-50 border-red-200 text-red-700" : "bg-green-50 border-green-200 text-green-700"
+    }`} role="alert">{message.text}</div>
+  );
+}
+
+function StrengthBar({ password }: { password: string }): JSX.Element | null {
+  const s = getPasswordStrength(password);
+  if (!password) return null;
+
+  const widthMap  = { none: "w-0", weak: "w-1/4", medium: "w-2/4", strong: "w-3/4", "very-strong": "w-full" };
+  const colorMap  = { none: "", weak: "bg-red-500", medium: "bg-amber-500", strong: "bg-green-500", "very-strong": "bg-green-600" };
+  const labelMap  = { none: "", weak: "text-red-500", medium: "text-amber-600", strong: "text-green-600", "very-strong": "text-green-700" };
+
+  return (
+    <div className="mt-2 flex flex-col gap-1.5">
+      <div className="flex items-center justify-between">
+        <span className={`text-xs font-semibold ${labelMap[s.level]}`}>{s.label}</span>
+        <span className="text-xs text-gray-400">{s.score}/7</span>
+      </div>
+      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full transition-all ${colorMap[s.level]} ${widthMap[s.level]}`} />
+      </div>
+      {s.errors.length > 0 && (
+        <ul className="flex flex-col gap-0.5">
+          {s.errors.map((e) => (
+            <li key={e} className="text-xs text-red-500 flex items-center gap-1">
+              <span className="shrink-0">✗</span>{e}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
+  );
+}
+
+function PasswordMatch({ password, confirm }: { password: string; confirm: string }): JSX.Element | null {
+  if (!confirm) return null;
+  const match = password === confirm;
+  return (
+    <p className={`mt-1.5 text-xs font-semibold ${match ? "text-green-600" : "text-red-500"}`}>
+      {match ? "✓ Passwords match" : "✗ Passwords do not match"}
+    </p>
   );
 }
 
@@ -67,53 +89,39 @@ export default function RegisterPage(): JSX.Element {
   const router = useRouter();
   const { setAuthData } = useAuth();
 
-  const [fullName,        setFullName]        = useState<string>("");
-  const [email,           setEmail]           = useState<string>("");
-  const [location,        setLocation]        = useState<string>("");
-  const [password,        setPassword]        = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [agree,           setAgree]           = useState<boolean>(false);
+  const [fullName,        setFullName]        = useState("");
+  const [email,           setEmail]           = useState("");
+  const [location,        setLocation]        = useState("");
+  const [password,        setPassword]        = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [agree,           setAgree]           = useState(false);
   const [message,         setMessage]         = useState<Message | null>(null);
-  const [loading,         setLoading]         = useState<boolean>(false);
+  const [loading,         setLoading]         = useState(false);
 
   const strength = useMemo(() => getPasswordStrength(password), [password]);
 
-  function showError(text: string):   void { setMessage({ type: "error",   text }); }
-  function showSuccess(text: string): void { setMessage({ type: "success", text }); }
-
-  // Validates fields then calls Strapi register API. On success saves auth state and navigates to OTP.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     setMessage(null);
 
-    if (!agree) { showError("Please accept the Terms & Conditions."); return; }
-    if (!fullName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim() || !location.trim()) {
-      showError("Please fill in all fields."); return;
-    }
-    if (password.length < 8) { showError("Password must be at least 8 characters long."); return; }
-    if (password !== confirmPassword) { showError("Passwords do not match."); return; }
+    if (!agree)                              { setMessage({ type: "error", text: "Please accept the Terms & Conditions." }); return; }
+    if (!fullName.trim() || !email.trim() || !password || !confirmPassword || !location.trim())
+                                             { setMessage({ type: "error", text: "Please fill in all fields." }); return; }
+    if (!strength.valid)                     { setMessage({ type: "error", text: "Password does not meet requirements." }); return; }
+    if (password !== confirmPassword)        { setMessage({ type: "error", text: "Passwords do not match." }); return; }
 
     setLoading(true);
     try {
       const { jwt, user } = await registerUser({ username: email, email, password, fullName, location });
-
-      // Persist auth state globally via context (also saves to localStorage).
       setAuthData(jwt, user);
-
-      // Store email so OTP page can reference it for resend functionality.
       sessionStorage.setItem("pendingEmail", email);
-
-      showSuccess("Account created! Redirecting to OTP verification…");
+      setMessage({ type: "success", text: "Account created! Redirecting to OTP verification…" });
       setTimeout(() => router.push("/otp-verification"), 1200);
     } catch (err) {
-      showError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+      setMessage({ type: "error", text: err instanceof Error ? err.message : "Registration failed. Please try again." });
       setLoading(false);
     }
   }
-
-  const barWidth   = strength.level === "none" ? "w-0" : strength.level === "weak" ? "w-1/3" : strength.level === "medium" ? "w-2/3" : "w-full";
-  const barColor   = strength.level === "weak" ? "bg-red-500" : strength.level === "medium" ? "bg-amber-500" : strength.level === "strong" ? "bg-green-600" : "bg-gray-200";
-  const labelColor = strength.level === "weak" ? "text-red-500" : strength.level === "medium" ? "text-amber-600" : strength.level === "strong" ? "text-green-700" : "text-gray-400";
 
   return (
     <main className="min-h-[calc(100vh-200px)] flex items-center justify-center px-5 py-16 bg-gray-50">
@@ -141,29 +149,23 @@ export default function RegisterPage(): JSX.Element {
           </div>
 
           <div>
+            <FieldLabel htmlFor="location">Location</FieldLabel>
+            <input id="location" type="text" value={location} onChange={(e) => setLocation(e.target.value)}
+              placeholder="City, Country" className={inputCls()} />
+          </div>
+
+          <div>
             <FieldLabel htmlFor="password">Password</FieldLabel>
             <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
               placeholder="Create a strong password" className={inputCls()} />
-            {password && (
-              <div className="mt-2">
-                <p className={`text-xs font-semibold ${labelColor}`}>{strength.label}</p>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mt-1.5">
-                  <div className={`h-full ${barColor} ${barWidth} transition-all`} />
-                </div>
-              </div>
-            )}
+            <StrengthBar password={password} />
           </div>
 
           <div>
             <FieldLabel htmlFor="confirm">Confirm Password</FieldLabel>
             <input id="confirm" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Re-enter your password" className={inputCls()} />
-          </div>
-
-          <div>
-            <FieldLabel htmlFor="location">Location</FieldLabel>
-            <input id="location" type="text" value={location} onChange={(e) => setLocation(e.target.value)}
-              placeholder="City, Country" className={inputCls()} />
+            <PasswordMatch password={password} confirm={confirmPassword} />
           </div>
 
           <label className="flex items-start gap-3 text-xs text-gray-600 select-none cursor-pointer">

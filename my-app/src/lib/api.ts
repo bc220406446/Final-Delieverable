@@ -532,3 +532,95 @@ export async function cancelExchange(id: number, token: string): Promise<StrapiE
   );
   return res.data;
 }
+
+// ─── Review Types ─────────────────────────────────────────────────────────────
+
+export interface StrapiReview {
+  id:             number;
+  exchange_id:    string;
+  reviewer_name:  string;
+  reviewer_email: string;
+  reviewee_name:  string;
+  reviewee_email: string;
+  skill_title:    string;
+  rating:         number;
+  comment:        string;
+  createdAt:      string;
+}
+
+export interface MyReviewsResponse {
+  given:    StrapiReview[];
+  received: StrapiReview[];
+}
+
+// ─── Review API ───────────────────────────────────────────────────────────────
+
+export async function getMyReviews(token: string): Promise<MyReviewsResponse> {
+  return strapiRequest<MyReviewsResponse>("/api/reviews/my-reviews", {}, token);
+}
+
+export async function createReview(
+  payload: { exchange_id: string; rating: number; comment: string },
+  token: string
+): Promise<StrapiReview> {
+  const res = await strapiRequest<{ data: StrapiReview }>(
+    "/api/reviews",
+    { method: "POST", body: JSON.stringify({ data: payload }) },
+    token
+  );
+  return res.data;
+}
+
+// ─── Report Types ─────────────────────────────────────────────────────────────
+
+export interface StrapiReport {
+  id:             number;
+  type:           "User" | "Skill" | "Exchange";
+  target_id:      string;
+  target_label:   string;
+  reason:         string;
+  description:    string;
+  reporter_name:  string;
+  reporter_email: string;
+  report_status:  "pending" | "resolved" | "dismissed";
+  admin_note:     string;
+  createdAt:      string;
+}
+
+// ─── Report API ───────────────────────────────────────────────────────────────
+
+export async function getMyReports(token: string): Promise<StrapiReport[]> {
+  const res = await strapiRequest<{ data: StrapiReport[] }>(
+    "/api/reports/my-reports", {}, token
+  );
+  return res.data;
+}
+
+export async function createReport(
+  payload: {
+    type:         "User" | "Skill" | "Exchange";
+    target_id:    string;
+    target_label: string;
+    reason:       string;
+    description:  string;
+  },
+  token: string
+): Promise<StrapiReport> {
+  const res = await strapiRequest<{ data: StrapiReport }>(
+    "/api/reports",
+    { method: "POST", body: JSON.stringify({ data: payload }) },
+    token
+  );
+  return res.data;
+}
+
+// Fetch all users (for report User dropdown — public profiles)
+export async function getAllUsers(token: string): Promise<StrapiUser[]> {
+  // /api/users returns a plain array (not wrapped in data:{})
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337"}/api/users?fields[0]=id&fields[1]=username&fields[2]=email&fields[3]=fullName&fields[4]=blocked`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!res.ok) throw new Error(`Failed to fetch users (${res.status})`);
+  return res.json() as Promise<StrapiUser[]>;
+}

@@ -509,6 +509,45 @@ export interface ApiExchangeExchange extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiReportReport extends Struct.CollectionTypeSchema {
+  collectionName: 'reports';
+  info: {
+    displayName: 'Report';
+    pluralName: 'reports';
+    singularName: 'report';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    admin_note: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::report.report'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    reason: Schema.Attribute.String;
+    report_status: Schema.Attribute.Enumeration<
+      ['pending', 'resolved', 'dismissed']
+    > &
+      Schema.Attribute.DefaultTo<'pending'>;
+    reporter_email: Schema.Attribute.Email;
+    reporter_name: Schema.Attribute.String;
+    target_id: Schema.Attribute.String;
+    target_label: Schema.Attribute.String;
+    type: Schema.Attribute.Enumeration<['User', 'Skill', 'Exchange']>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiRequestRequest extends Struct.CollectionTypeSchema {
   collectionName: 'requests';
   info: {
@@ -544,6 +583,48 @@ export interface ApiRequestRequest extends Struct.CollectionTypeSchema {
     requester_name: Schema.Attribute.String;
     status: Schema.Attribute.Enumeration<['pending', 'accepted', 'rejected']> &
       Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiReviewReview extends Struct.CollectionTypeSchema {
+  collectionName: 'reviews';
+  info: {
+    displayName: 'Review';
+    pluralName: 'reviews';
+    singularName: 'review';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    comment: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    exchange_id: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::review.review'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    rating: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 5;
+          min: 1;
+        },
+        number
+      >;
+    reviewee_email: Schema.Attribute.Email;
+    reviewee_name: Schema.Attribute.String;
+    reviewer_email: Schema.Attribute.Email;
+    reviewer_name: Schema.Attribute.String;
+    skill_title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1114,7 +1195,9 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::exchange.exchange': ApiExchangeExchange;
+      'api::report.report': ApiReportReport;
       'api::request.request': ApiRequestRequest;
+      'api::review.review': ApiReviewReview;
       'api::skill.skill': ApiSkillSkill;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

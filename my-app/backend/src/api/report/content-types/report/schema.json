@@ -1,0 +1,52 @@
+{
+  "kind": "collectionType",
+  "collectionName": "reports",
+  "info": {
+    "singularName": "report",
+    "pluralName": "reports",
+    "displayName": "Report"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "User",
+        "Skill",
+        "Exchange"
+      ]
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "target_label": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "reporter_name": {
+      "type": "string"
+    },
+    "reporter_email": {
+      "type": "email"
+    },
+    "admin_note": {
+      "type": "text"
+    },
+    "report_status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "resolved",
+        "dismissed"
+      ],
+      "default": "pending"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "reviews",
+  "info": {
+    "singularName": "review",
+    "pluralName":   "reviews",
+    "displayName":  "Review"
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "exchange_id":       { "type": "string"  },
+    "reviewer_name":     { "type": "string"  },
+    "reviewer_email":    { "type": "email"   },
+    "reviewee_name":     { "type": "string"  },
+    "reviewee_email":    { "type": "email"   },
+    "skill_title":       { "type": "string"  },
+    "rating": {
+      "type": "integer",
+      "min": 1,
+      "max": 5
+    },
+    "comment":           { "type": "text"    }
+  }
+}

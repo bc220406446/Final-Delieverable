@@ -1,42 +1,19 @@
-// Provides the abuse report submission modal used from the user dashboard.
+// Abuse report modal with live dropdowns for User, Skill, and Exchange targets.
 "use client";
 
 import { useState, useEffect, JSX } from "react";
-
-// Defines report form types and component props for abuse submission.
+import { useAuth } from "@/context/AuthContext";
+import {
+  getAllUsers, getApprovedSkills, getMyExchanges,
+  createReport, StrapiUser, StrapiSkill, StrapiExchange,
+} from "@/lib/api";
 
 export type AbuseReportType = "User" | "Skill" | "Exchange";
 
-export interface AbuseReportForm {
-  type: AbuseReportType | "";
-  target: string;
-  reason: string;
-  description: string;
-}
-
-interface FormErrors {
-  type?: string;
-  target?: string;
-  reason?: string;
-  description?: string;
-}
-
 interface Props {
-  onSave: (form: AbuseReportForm) => void;
-  onClose: () => void;
+  onSaved:  () => void;
+  onClose:  () => void;
 }
-
-// Provides selectable report types and target labels/placeholders by type.
-
-const REPORT_TYPES: AbuseReportType[] = ["User", "Skill", "Exchange"];
-
-const TARGET_CONFIG: Record<AbuseReportType, { label: string; placeholder: string }> = {
-  User:     { label: "Username",    placeholder: "Enter the username you want to report…"          },
-  Skill:    { label: "Skill Title", placeholder: "Enter the skill title you want to report…"       },
-  Exchange: { label: "Exchange ID", placeholder: "Enter the Exchange ID (e.g. EX-2026-014)…" },
-};
-
-// Shared form styling and small field helper components for validation feedback.
 
 function fieldCls(hasError: boolean): string {
   return `w-full rounded-xl border px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white ${
@@ -53,155 +30,254 @@ function FieldLabel({ children }: { children: React.ReactNode }): JSX.Element {
 }
 
 function FieldError({ msg }: { msg?: string }): JSX.Element | null {
-  if (!msg) return null;
-  return <p className="mt-1 text-xs text-red-500">{msg}</p>;
+  return msg ? <p className="mt-1 text-xs text-red-500">{msg}</p> : null;
 }
 
-// Renders the report form modal and submits validated abuse report details.
+export default function AddReportModal({ onSaved, onClose }: Props): JSX.Element {
+  const { token, user } = useAuth();
 
-export default function AddReportModal({ onSave, onClose }: Props): JSX.Element {
-  const [form, setForm] = useState<AbuseReportForm>({
-    type: "", target: "", reason: "", description: "",
-  });
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [type,        setType]        = useState<AbuseReportType | "">("");
+  const [targetId,    setTargetId]    = useState("");   // id/email/exchange_id
+  const [targetLabel, setTargetLabel] = useState("");   // human-readable label
+  const [reason,      setReason]      = useState("");
+  const [description, setDescription] = useState("");
+  const [submitting,  setSubmitting]  = useState(false);
+  const [apiError,    setApiError]    = useState<string | null>(null);
+  const [errors,      setErrors]      = useState<Record<string, string>>({});
 
-  // Escape key to close
+  // Data for dropdowns
+  const [users,     setUsers]     = useState<StrapiUser[]>([]);
+  const [skills,    setSkills]    = useState<StrapiSkill[]>([]);
+  const [exchanges, setExchanges] = useState<StrapiExchange[]>([]);
+  const [loadingOptions, setLoadingOptions] = useState(false);
+
   useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
+    function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
-  function validate(): FormErrors {
-    const e: FormErrors = {};
-    if (!form.type) e.type = "Please select a report type.";
-    if (!form.target.trim()) {
-      if      (form.type === "User")     e.target = "Username is required.";
-      else if (form.type === "Skill")    e.target = "Skill title is required.";
-      else if (form.type === "Exchange") e.target = "Exchange ID is required.";
-      else                               e.target = "This field is required.";
-    }
-    if (!form.reason.trim())      e.reason      = "Reason is required.";
-    if (!form.description.trim()) e.description = "Description is required.";
-    return e;
+  // Load options when type changes
+  useEffect(() => {
+    if (!type || !token) return;
+    setTargetId(""); setTargetLabel("");
+    setLoadingOptions(true);
+
+    const loaders: Record<AbuseReportType, () => Promise<void>> = {
+      User: async () => {
+        const all = await getAllUsers(token);
+        // Exclude self
+        setUsers(all.filter((u) => u.email !== user?.email && !(u as any).blocked));
+      },
+      Skill: async () => {
+        const all = await getApprovedSkills(token);
+        // Exclude own skills
+        setSkills(all.filter((s) => s.provider_email !== user?.email));
+      },
+      Exchange: async () => {
+        const all = await getMyExchanges(token);
+        setExchanges(all);
+      },
+    };
+
+    loaders[type as AbuseReportType]()
+      .catch(() => {})
+      .finally(() => setLoadingOptions(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, token]);
+
+  function selectUser(u: StrapiUser) {
+    setTargetId(u.email);
+    setTargetLabel(u.fullName || u.username || u.email);
+    setErrors((p) => ({ ...p, target: "" }));
   }
 
-  function handleSubmit() {
-    const e = validate();
+  function selectSkill(s: StrapiSkill) {
+    setTargetId(String(s.id));
+    setTargetLabel(s.title);
+    setErrors((p) => ({ ...p, target: "" }));
+  }
+
+  function selectExchange(x: StrapiExchange) {
+    setTargetId(x.exchange_id);
+    const isRequester = x.requester_email === user?.email;
+    const partner     = isRequester ? x.provider_name : x.requester_name;
+    setTargetLabel(`${x.exchange_id} — ${partner}`);
+    setErrors((p) => ({ ...p, target: "" }));
+  }
+
+  async function handleSubmit() {
+    const e: Record<string, string> = {};
+    if (!type)              e.type        = "Please select a report type.";
+    if (!targetId)          e.target      = "Please select a target.";
+    if (!reason.trim())     e.reason      = "Reason is required.";
+    if (!description.trim()) e.description = "Description is required.";
     if (Object.keys(e).length) { setErrors(e); return; }
-    onSave(form);
+    if (!token) return;
+
+    setSubmitting(true); setApiError(null);
+    try {
+      await createReport({
+        type:         type as AbuseReportType,
+        target_id:    targetId,
+        target_label: targetLabel,
+        reason:       reason.trim(),
+        description:  description.trim(),
+      }, token);
+      onSaved();
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : "Failed to submit report.");
+      setSubmitting(false);
+    }
+  }
+
+  // Dropdown content by type
+  function renderTargetSelector(): JSX.Element {
+    if (!type) return <></>;
+
+    if (loadingOptions) {
+      return <div className="text-sm text-gray-400 py-2">Loading options…</div>;
+    }
+
+    if (type === "User") {
+      return (
+        <div>
+          <FieldLabel>Select User to Report</FieldLabel>
+          <select className={fieldCls(!!errors.target)} value={targetId}
+            onChange={(e) => {
+              const u = users.find((x) => x.email === e.target.value);
+              if (u) selectUser(u);
+            }}>
+            <option value="">Choose a user…</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.email}>
+                {u.fullName || u.username} ({u.email})
+              </option>
+            ))}
+          </select>
+          <FieldError msg={errors.target} />
+        </div>
+      );
+    }
+
+    if (type === "Skill") {
+      return (
+        <div>
+          <FieldLabel>Select Skill to Report</FieldLabel>
+          <select className={fieldCls(!!errors.target)} value={targetId}
+            onChange={(e) => {
+              const s = skills.find((x) => String(x.id) === e.target.value);
+              if (s) selectSkill(s);
+            }}>
+            <option value="">Choose a skill…</option>
+            {skills.map((s) => (
+              <option key={s.id} value={String(s.id)}>
+                {s.title} — {s.provider_name}
+              </option>
+            ))}
+          </select>
+          <FieldError msg={errors.target} />
+        </div>
+      );
+    }
+
+    if (type === "Exchange") {
+      return (
+        <div>
+          <FieldLabel>Select Exchange to Report</FieldLabel>
+          <select className={fieldCls(!!errors.target)} value={targetId}
+            onChange={(e) => {
+              const x = exchanges.find((ex) => ex.exchange_id === e.target.value);
+              if (x) selectExchange(x);
+            }}>
+            <option value="">Choose an exchange…</option>
+            {exchanges.map((x) => {
+              const isReq   = x.requester_email === user?.email;
+              const partner = isReq ? x.provider_name : x.requester_name;
+              return (
+                <option key={x.id} value={x.exchange_id}>
+                  {x.exchange_id} — {partner} ({x.status})
+                </option>
+              );
+            })}
+          </select>
+          <FieldError msg={errors.target} />
+        </div>
+      );
+    }
+
+    return <></>;
   }
 
   return (
     <>
-      {/* Backdrop - pointer-events-none, only Close / Escape dismisses */}
-      <div className="fixed inset-0 bg-black/30 z-40 pointer-events-none" />
-
-      {/* Panel */}
+      <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md my-auto overflow-hidden">
 
-          {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
             <h3 className="text-base font-extrabold text-gray-900">Submit Abuse Report</h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-xs font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition px-2.5 py-1.5 rounded-lg"
-            >
+            <button type="button" onClick={onClose}
+              className="text-xs font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition px-2.5 py-1.5 rounded-lg">
               Close
             </button>
           </div>
 
-          {/* Body */}
           <div className="px-6 py-5 flex flex-col gap-4">
 
-            {/* Type */}
+            {apiError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {apiError}
+              </div>
+            )}
+
+            {/* Report Type */}
             <div>
-              <FieldLabel>Type</FieldLabel>
-              <select
-                value={form.type}
-                onChange={(e) => {
-                  setForm((p) => ({ ...p, type: e.target.value as AbuseReportType | "", target: "" }));
-                  setErrors((p) => ({ ...p, type: undefined, target: undefined }));
-                }}
-                className={fieldCls(!!errors.type)}
-              >
+              <FieldLabel>Report Type</FieldLabel>
+              <select className={fieldCls(!!errors.type)} value={type}
+                onChange={(e) => { setType(e.target.value as AbuseReportType | ""); setErrors({}); }}>
                 <option value="">Select report type…</option>
-                {REPORT_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
+                <option value="User">User</option>
+                <option value="Skill">Skill</option>
+                <option value="Exchange">Exchange</option>
               </select>
               <FieldError msg={errors.type} />
             </div>
 
-            {/* Dynamic target - shown only after type is selected */}
-            {form.type !== "" && (
-              <div>
-                <FieldLabel>{TARGET_CONFIG[form.type as AbuseReportType].label}</FieldLabel>
-                <input
-                  type="text"
-                  value={form.target}
-                  onChange={(e) => {
-                    setForm((p) => ({ ...p, target: e.target.value }));
-                    setErrors((p) => ({ ...p, target: undefined }));
-                  }}
-                  placeholder={TARGET_CONFIG[form.type as AbuseReportType].placeholder}
-                  className={fieldCls(!!errors.target)}
-                />
-                <FieldError msg={errors.target} />
-              </div>
-            )}
+            {/* Dynamic target dropdown */}
+            {renderTargetSelector()}
 
             {/* Reason */}
-            <div>
-              <FieldLabel>Reason</FieldLabel>
-              <input
-                type="text"
-                value={form.reason}
-                onChange={(e) => {
-                  setForm((p) => ({ ...p, reason: e.target.value }));
-                  setErrors((p) => ({ ...p, reason: undefined }));
-                }}
-                placeholder="e.g. Spam, Harassment, Misleading content…"
-                className={fieldCls(!!errors.reason)}
-              />
-              <FieldError msg={errors.reason} />
-            </div>
+            {type && (
+              <>
+                <div>
+                  <FieldLabel>Reason</FieldLabel>
+                  <input type="text" value={reason}
+                    onChange={(e) => { setReason(e.target.value); setErrors((p) => ({ ...p, reason: "" })); }}
+                    placeholder="e.g. Spam, Harassment, Misleading content…"
+                    className={fieldCls(!!errors.reason)} />
+                  <FieldError msg={errors.reason} />
+                </div>
 
-            {/* Description */}
-            <div>
-              <FieldLabel>Description</FieldLabel>
-              <textarea
-                rows={3}
-                value={form.description}
-                onChange={(e) => {
-                  setForm((p) => ({ ...p, description: e.target.value }));
-                  setErrors((p) => ({ ...p, description: undefined }));
-                }}
-                placeholder="Describe the issue in detail…"
-                className={`${fieldCls(!!errors.description)} resize-none`}
-              />
-              <FieldError msg={errors.description} />
-            </div>
+                <div>
+                  <FieldLabel>Description</FieldLabel>
+                  <textarea rows={3} value={description}
+                    onChange={(e) => { setDescription(e.target.value); setErrors((p) => ({ ...p, description: "" })); }}
+                    placeholder="Describe the issue in detail…"
+                    className={`${fieldCls(!!errors.description)} resize-none`} />
+                  <FieldError msg={errors.description} />
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Footer */}
           <div className="px-6 pb-6 flex gap-3">
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold text-sm py-2.5 rounded-xl transition"
-            >
-              Submit Report
+            <button type="button" onClick={handleSubmit} disabled={submitting}
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold text-sm py-2.5 rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed">
+              {submitting ? "Submitting…" : "Submit Report"}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm py-2.5 rounded-xl transition"
-            >
+            <button type="button" onClick={onClose} disabled={submitting}
+              className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm py-2.5 rounded-xl transition disabled:opacity-50">
               Cancel
             </button>
           </div>
