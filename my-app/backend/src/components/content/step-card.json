@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_content_step_cards",
+  "info": { "displayName": "Step Card", "icon": "list-ol" },
+  "attributes": {
+    "num":   { "type": "integer" },
+    "title": { "type": "string"  },
+    "desc":  { "type": "text"    }
+  }
+}

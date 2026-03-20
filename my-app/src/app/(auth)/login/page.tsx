@@ -1,7 +1,7 @@
 "use client";
 import { JSX, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { loginUser, getMe } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
@@ -52,6 +52,8 @@ function OrDivider(): JSX.Element {
 export default function LoginPage(): JSX.Element {
   const router = useRouter();
   const { setAuthData, isAdmin } = useAuth();
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
 
   const [email,      setEmail]      = useState<string>("");
   const [password,   setPassword]   = useState<string>("");

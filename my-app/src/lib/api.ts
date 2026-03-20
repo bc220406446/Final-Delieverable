@@ -686,3 +686,25 @@ export async function getPoliciesPage(): Promise<CmsPoliciesPage | null> {
     return await cmsGet("/api/policies-page") as CmsPoliciesPage;
   } catch { return null; }
 }
+
+export interface CmsCategoryCard { title: string; desc: string; image?: { url: string } | null; }
+export interface CmsStepCard     { num: number; title: string; desc: string; }
+
+export interface CmsHomePage {
+  hero_title:     string;
+  hero_subtitle:  string;
+  hero_cta_label: string;
+  hero_cta_href:  string;
+  hero_image?:    { url: string } | null;
+  categories:     CmsCategoryCard[];
+  steps:          CmsStepCard[];
+  team_members:   CmsTeamMember[];
+}
+
+export async function getHomePage(): Promise<CmsHomePage | null> {
+  try {
+    return await cmsGet(
+      "/api/home-page?populate[hero_image]=true&populate[categories][populate][image]=true&populate[steps]=true&populate[team_members][populate][image]=true"
+    ) as CmsHomePage;
+  } catch { return null; }
+}

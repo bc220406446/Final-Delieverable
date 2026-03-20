@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_content_category_cards",
+  "info": { "displayName": "Category Card", "icon": "layer-group" },
+  "attributes": {
+    "title": { "type": "string" },
+    "desc":  { "type": "text"   },
+    "image": { "type": "media", "multiple": false, "allowedTypes": ["images"] }
+  }
+}

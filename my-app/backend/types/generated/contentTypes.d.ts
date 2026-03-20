@@ -575,6 +575,40 @@ export interface ApiFaqPageFaqPage extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiHomePageHomePage extends Struct.SingleTypeSchema {
+  collectionName: 'home_pages';
+  info: {
+    displayName: 'Home Page';
+    pluralName: 'home-pages';
+    singularName: 'home-page';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    categories: Schema.Attribute.Component<'content.category-card', true>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    hero_cta_label: Schema.Attribute.String;
+    hero_image: Schema.Attribute.Media<'images'>;
+    hero_subtitle: Schema.Attribute.String;
+    hero_title: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::home-page.home-page'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    steps: Schema.Attribute.Component<'content.step-card', true>;
+    team_members: Schema.Attribute.Component<'content.team-member', true>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPoliciesPagePoliciesPage extends Struct.SingleTypeSchema {
   collectionName: 'policies_pages';
   info: {
@@ -1295,6 +1329,7 @@ declare module '@strapi/strapi' {
       'api::about-page.about-page': ApiAboutPageAboutPage;
       'api::exchange.exchange': ApiExchangeExchange;
       'api::faq-page.faq-page': ApiFaqPageFaqPage;
+      'api::home-page.home-page': ApiHomePageHomePage;
       'api::policies-page.policies-page': ApiPoliciesPagePoliciesPage;
       'api::report.report': ApiReportReport;
       'api::request.request': ApiRequestRequest;

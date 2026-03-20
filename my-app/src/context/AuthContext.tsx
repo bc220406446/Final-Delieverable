@@ -16,6 +16,17 @@ import {
 import type { StrapiUser } from "@/lib/api";
 import { getToken, getUser, saveToken, saveUser, clearAuth } from "@/lib/auth";
 
+// ── Cookie helpers (for middleware — Edge runtime can't read localStorage) ────
+// We set a lightweight cookie that middleware can check without the full JWT.
+function setAuthCookie(token: string): void {
+  // HttpOnly not possible from JS — this cookie is just for middleware routing.
+  // The real auth token stays in localStorage.
+  document.cookie = `csep_token=${token}; path=/; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}`;
+}
+function clearAuthCookie(): void {
+  document.cookie = "csep_token=; path=/; SameSite=Lax; Max-Age=0";
+}
+
 interface AuthContextValue {
   user:          StrapiUser | null;
   token:         string | null;
@@ -41,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(storedUser);
+      setAuthCookie(storedToken); // refresh cookie in case it expired
     }
     setIsLoading(false);
   }, []);
@@ -51,11 +63,13 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     saveUser(userData);
     setToken(jwt);
     setUser(userData);
+    setAuthCookie(jwt);   // let middleware know user is logged in
   }, []);
 
   // Clears all auth state — call this from any logout action.
   const logout = useCallback((): void => {
     clearAuth();
+    clearAuthCookie();    // remove middleware cookie
     setToken(null);
     setUser(null);
   }, []);

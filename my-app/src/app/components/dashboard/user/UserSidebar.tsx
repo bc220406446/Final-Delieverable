@@ -58,9 +58,9 @@ export default function UserSidebar() {
               </div>
               <Link
                 href="/dashboard/user/change-password"
-                className="text-xs text-green-600 hover:text-green-800 hover:underline font-medium mt-0.5 inline-block"
+                className="text-sm text-green-600 hover:text-green-800 hover:underline font-semibold mt-0.5 inline-block"
               >
-                Change password
+                Change Password
               </Link>
             </div>
           </div>

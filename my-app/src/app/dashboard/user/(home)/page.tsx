@@ -20,11 +20,11 @@ interface ActionCard {
 }
 
 const ACTIONS: ActionCard[] = [
-  { title: "Edit Your Profile",    desc: "Update your personal information and preferences.",  href: "/dashboard/user/my-profile",       variant: "primary",  cta: "Edit Profile"    },
+  { title: "Edit Your Profile",    desc: "Update your personal information.",  href: "/dashboard/user/my-profile",       variant: "primary",  cta: "Edit Profile"    },
   { title: "Add an Offered Skill", desc: "Share what you can teach or do.",                    href: "/dashboard/user/my-offered-skills", variant: "outline",  cta: "Add Skill"       },
   { title: "Browse Skills",        desc: "Find a skill and book an exchange.",                 href: "/dashboard/user/browse-skills",     variant: "ghost",    cta: "Browse"          },
-  { title: "Check Requests",       desc: "Approve or manage pending requests.",                href: "/dashboard/user/requests",          variant: "primary",  cta: "Open Requests"   },
-  { title: "Add Review",           desc: "Share your experience with a skill provider.",       href: "/dashboard/user/rating-and-reviews",variant: "outline",  cta: "Add Review"      },
+  { title: "Check Requests",       desc: "Request required skills or manage received requests.",                href: "/dashboard/user/requests",          variant: "primary",  cta: "Open Requests"   },
+  { title: "Add Review",           desc: "Share your experience with skill provider.",       href: "/dashboard/user/rating-and-reviews",variant: "outline",  cta: "Add Review"      },
   { title: "Report Abuse",         desc: "Report any abusive behavior or content.",            href: "/dashboard/user/report-abuse",      variant: "ghost",    cta: "Report Abuse"    },
 ];
 

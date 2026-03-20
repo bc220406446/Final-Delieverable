@@ -172,7 +172,7 @@ export default function Header(): JSX.Element {
         <div className="hidden md:flex items-center gap-2">
           <DashboardButton />
           {isAuthenticated ? (
-            <Link href="/dashboard/user/logout"
+            <Link href="/logout"
               className="inline-flex items-center justify-center border border-red-200 hover:bg-red-50 text-red-600 font-semibold text-sm px-4 py-2.5 rounded-xl transition">
               Logout
             </Link>
