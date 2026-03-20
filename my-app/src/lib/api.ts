@@ -488,3 +488,47 @@ export async function rejectRequest(id: number, token: string): Promise<void> {
 export async function cancelRequest(id: number, token: string): Promise<void> {
   await strapiRequest(`/api/requests/${id}`, { method: "DELETE" }, token);
 }
+
+// ─── Exchange Types ───────────────────────────────────────────────────────────
+
+export interface StrapiExchange {
+  id:                   number;
+  exchange_id:          string;
+  requester_name:       string;
+  requester_email:      string;
+  provider_name:        string;
+  provider_email:       string;
+  skill_a_title:        string;  // what requester provides
+  skill_b_title:        string;  // what provider provides
+  preferred_slot:       string;
+  mode:                 "Online" | "In-person";
+  status:               "active" | "completed" | "cancelled";
+  requester_confirmed:  boolean;
+  provider_confirmed:   boolean;
+  createdAt:            string;
+}
+
+// ─── Exchange API ─────────────────────────────────────────────────────────────
+
+export async function getMyExchanges(token: string): Promise<StrapiExchange[]> {
+  const res = await strapiRequest<{ data: StrapiExchange[] }>(
+    "/api/exchanges/my-exchanges", {}, token
+  );
+  return res.data;
+}
+
+// User marks their side as done.
+export async function confirmExchange(id: number, token: string): Promise<StrapiExchange> {
+  const res = await strapiRequest<{ data: StrapiExchange }>(
+    `/api/exchanges/${id}/confirm`, { method: "PATCH" }, token
+  );
+  return res.data;
+}
+
+// Either party cancels the exchange.
+export async function cancelExchange(id: number, token: string): Promise<StrapiExchange> {
+  const res = await strapiRequest<{ data: StrapiExchange }>(
+    `/api/exchanges/${id}/cancel`, { method: "PATCH" }, token
+  );
+  return res.data;
+}

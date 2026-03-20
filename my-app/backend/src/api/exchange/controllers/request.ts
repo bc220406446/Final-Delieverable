@@ -203,4 +203,52 @@ export default factories.createCoreController('api::request.request', () => ({
     return ctx.send({ data: null });
   },
 
+  // POST /api/requests/:id/sync-exchange
+  // Creates an exchange for an already-accepted request that has no exchange yet.
+  // Useful when a request was accepted before exchange auto-creation was deployed.
+  async syncExchange(ctx: any) {
+    const user = ctx.state.user;
+    if (!user) return ctx.unauthorized('You must be logged in.');
+
+    const { id } = ctx.params;
+    const req = await es().findOne('api::request.request', id);
+    if (!req)                      return ctx.notFound('Request not found.');
+    if (req.status !== 'accepted') return ctx.badRequest('Request is not accepted.');
+
+    // Check if exchange already exists for this request
+    const existing = await es().findMany('api::exchange.exchange', {
+      filters: {
+        requester_email: req.requester_email,
+        skill_b_title:   req.requested_skill_title,
+      },
+    });
+    if (existing?.length > 0) {
+      return ctx.badRequest('Exchange already exists for this request.');
+    }
+
+    const acceptedSkillTitle = req.accepted_skill_title || req.offered_skill_title;
+    const exchangeCount      = await es().count('api::exchange.exchange');
+    const exchangeId         = `EXC-${String(exchangeCount + 1).padStart(4, '0')}`;
+
+    const exchange = await es().create('api::exchange.exchange', {
+      data: {
+        exchange_id:         exchangeId,
+        requester_name:      req.requester_name,
+        requester_email:     req.requester_email,
+        provider_name:       req.provider_name,
+        provider_email:      req.provider_email,
+        skill_a_title:       acceptedSkillTitle,
+        skill_b_title:       req.requested_skill_title,
+        preferred_slot:      req.preferred_slot,
+        mode:                req.mode,
+        status:              'active',
+        requester_confirmed: false,
+        provider_confirmed:  false,
+      },
+    });
+
+    strapi.log.info(`[CSEP] Synced exchange ${exchangeId} for request ${id}`);
+    return ctx.send({ data: exchange });
+  },
+
 }));

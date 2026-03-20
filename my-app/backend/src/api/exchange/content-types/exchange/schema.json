@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "exchanges",
+  "info": {
+    "singularName": "exchange",
+    "pluralName": "exchanges",
+    "displayName": "Exchange"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "exchange_id":           { "type": "string" },
+    "requester_name":        { "type": "string" },
+    "requester_email":       { "type": "email"  },
+    "provider_name":         { "type": "string" },
+    "provider_email":        { "type": "email"  },
+    "skill_a_title":         { "type": "string" },
+    "skill_b_title":         { "type": "string" },
+    "preferred_slot":        { "type": "string" },
+    "mode": {
+      "type": "enumeration",
+      "enum": ["Online", "In-person"]
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["active", "completed", "cancelled"],
+      "default": "active"
+    },
+    "requester_confirmed":   { "type": "boolean", "default": false },
+    "provider_confirmed":    { "type": "boolean", "default": false }
+  }
+}

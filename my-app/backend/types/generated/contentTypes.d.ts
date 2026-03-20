@@ -467,6 +467,48 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiExchangeExchange extends Struct.CollectionTypeSchema {
+  collectionName: 'exchanges';
+  info: {
+    displayName: 'Exchange';
+    pluralName: 'exchanges';
+    singularName: 'exchange';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    exchange_id: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::exchange.exchange'
+    > &
+      Schema.Attribute.Private;
+    mode: Schema.Attribute.Enumeration<['Online', 'In-person']>;
+    preferred_slot: Schema.Attribute.String;
+    provider_confirmed: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    provider_email: Schema.Attribute.Email;
+    provider_name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    requester_confirmed: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    requester_email: Schema.Attribute.Email;
+    requester_name: Schema.Attribute.String;
+    skill_a_title: Schema.Attribute.String;
+    skill_b_title: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<['active', 'completed', 'cancelled']> &
+      Schema.Attribute.DefaultTo<'active'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiRequestRequest extends Struct.CollectionTypeSchema {
   collectionName: 'requests';
   info: {
@@ -1071,6 +1113,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::exchange.exchange': ApiExchangeExchange;
       'api::request.request': ApiRequestRequest;
       'api::skill.skill': ApiSkillSkill;
       'plugin::content-releases.release': PluginContentReleasesRelease;
