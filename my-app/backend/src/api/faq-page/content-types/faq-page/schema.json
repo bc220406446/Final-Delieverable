@@ -1,0 +1,20 @@
+{
+  "kind": "singleType",
+  "collectionName": "faq_pages",
+  "info": {
+    "singularName": "faq-page",
+    "pluralName":   "faq-pages",
+    "displayName":  "FAQ Page"
+  },
+  "options": { "draftAndPublish": true },
+  "attributes": {
+    "hero_title":       { "type": "string" },
+    "hero_description": { "type": "text"   },
+    "section_heading":  { "type": "string" },
+    "faqs": {
+      "type": "component",
+      "repeatable": true,
+      "component": "content.faq-item"
+    }
+  }
+}

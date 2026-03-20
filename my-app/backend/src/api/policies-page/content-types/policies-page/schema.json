@@ -1,0 +1,17 @@
+{
+  "kind": "singleType",
+  "collectionName": "policies_pages",
+  "info": {
+    "singularName": "policies-page",
+    "pluralName":   "policies-pages",
+    "displayName":  "Policies Page"
+  },
+  "options": { "draftAndPublish": true },
+  "attributes": {
+    "last_updated":     { "type": "string" },
+    "privacy_policy":   { "type": "blocks" },
+    "terms_of_service": { "type": "blocks" },
+    "exchange_policy":  { "type": "blocks" },
+    "community_guidelines": { "type": "blocks" }
+  }
+}

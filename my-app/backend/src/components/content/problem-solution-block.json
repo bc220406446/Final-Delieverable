@@ -1,0 +1,11 @@
+{
+  "collectionName": "components_content_problem_solution_blocks",
+  "info": {
+    "displayName": "Problem Solution Block",
+    "icon": "exchange-alt"
+  },
+  "attributes": {
+    "problem":  { "type": "text" },
+    "solution": { "type": "text" }
+  }
+}

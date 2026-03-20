@@ -467,6 +467,41 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiAboutPageAboutPage extends Struct.SingleTypeSchema {
+  collectionName: 'about_pages';
+  info: {
+    displayName: 'About Page';
+    pluralName: 'about-pages';
+    singularName: 'about-page';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    hero_description: Schema.Attribute.Text;
+    hero_image: Schema.Attribute.Media<'images'>;
+    hero_title: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::about-page.about-page'
+    > &
+      Schema.Attribute.Private;
+    problem_blocks: Schema.Attribute.Component<
+      'content.problem-solution-block',
+      true
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    team_members: Schema.Attribute.Component<'content.team-member', true>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiExchangeExchange extends Struct.CollectionTypeSchema {
   collectionName: 'exchanges';
   info: {
@@ -503,6 +538,69 @@ export interface ApiExchangeExchange extends Struct.CollectionTypeSchema {
     skill_b_title: Schema.Attribute.String;
     status: Schema.Attribute.Enumeration<['active', 'completed', 'cancelled']> &
       Schema.Attribute.DefaultTo<'active'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiFaqPageFaqPage extends Struct.SingleTypeSchema {
+  collectionName: 'faq_pages';
+  info: {
+    displayName: 'FAQ Page';
+    pluralName: 'faq-pages';
+    singularName: 'faq-page';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    faqs: Schema.Attribute.Component<'content.faq-item', true>;
+    hero_description: Schema.Attribute.Text;
+    hero_title: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::faq-page.faq-page'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    section_heading: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPoliciesPagePoliciesPage extends Struct.SingleTypeSchema {
+  collectionName: 'policies_pages';
+  info: {
+    displayName: 'Policies Page';
+    pluralName: 'policies-pages';
+    singularName: 'policies-page';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    community_guidelines: Schema.Attribute.Blocks;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    exchange_policy: Schema.Attribute.Blocks;
+    last_updated: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::policies-page.policies-page'
+    > &
+      Schema.Attribute.Private;
+    privacy_policy: Schema.Attribute.Blocks;
+    publishedAt: Schema.Attribute.DateTime;
+    terms_of_service: Schema.Attribute.Blocks;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1194,7 +1292,10 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::about-page.about-page': ApiAboutPageAboutPage;
       'api::exchange.exchange': ApiExchangeExchange;
+      'api::faq-page.faq-page': ApiFaqPageFaqPage;
+      'api::policies-page.policies-page': ApiPoliciesPagePoliciesPage;
       'api::report.report': ApiReportReport;
       'api::request.request': ApiRequestRequest;
       'api::review.review': ApiReviewReview;

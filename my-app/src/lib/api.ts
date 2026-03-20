@@ -624,3 +624,65 @@ export async function getAllUsers(token: string): Promise<StrapiUser[]> {
   if (!res.ok) throw new Error(`Failed to fetch users (${res.status})`);
   return res.json() as Promise<StrapiUser[]>;
 }
+
+// ─── CMS Content Types ────────────────────────────────────────────────────────
+
+export interface CmsFaqItem      { question: string; answer: string; }
+export interface CmsTeamMember   { name: string; role: string; desc: string; image?: { url: string } | null; }
+export interface CmsProblemBlock { problem: string; solution: string; }
+
+export interface CmsAboutPage {
+  hero_title:       string;
+  hero_description: string;
+  hero_image?:      { url: string } | null;
+  problem_blocks:   CmsProblemBlock[];
+  team_members:     CmsTeamMember[];
+}
+
+export interface CmsFaqPage {
+  hero_title:      string;
+  hero_description:string;
+  section_heading: string;
+  faqs:            CmsFaqItem[];
+}
+
+export interface CmsPoliciesPage {
+  last_updated:         string;
+  privacy_policy:       unknown;   // Strapi blocks JSON
+  terms_of_service:     unknown;
+  exchange_policy:      unknown;
+  community_guidelines: unknown;
+}
+
+// ─── CMS API (public — no token needed) ──────────────────────────────────────
+
+// Helper for public CMS fetches — no auth, no-store cache for fresh content.
+async function cmsGet(endpoint: string): Promise<any> {
+  const url = `${STRAPI_URL}${endpoint}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`CMS fetch failed: ${res.status}`);
+  const json = await res.json();
+  // Strapi v5 single types return flat { id, ..fields } NOT { data: { ... } }
+  // But with populate, nested relations come under their field names directly.
+  return json.data ?? json;
+}
+
+export async function getAboutPage(): Promise<CmsAboutPage | null> {
+  try {
+    return await cmsGet(
+      "/api/about-page?populate[hero_image]=true&populate[problem_blocks]=true&populate[team_members][populate][image]=true"
+    ) as CmsAboutPage;
+  } catch { return null; }
+}
+
+export async function getFaqPage(): Promise<CmsFaqPage | null> {
+  try {
+    return await cmsGet("/api/faq-page?populate[faqs]=true") as CmsFaqPage;
+  } catch { return null; }
+}
+
+export async function getPoliciesPage(): Promise<CmsPoliciesPage | null> {
+  try {
+    return await cmsGet("/api/policies-page") as CmsPoliciesPage;
+  } catch { return null; }
+}
