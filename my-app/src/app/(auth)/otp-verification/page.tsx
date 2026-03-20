@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect, JSX } from "react";
-import { verifyOtp, resendOtp } from "@/lib/api";
+import { verifyOtp, resendOtp, getMe } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
 interface Message { type: "error" | "success"; text: string }
@@ -92,7 +92,9 @@ export default function OtpVerificationPage(): JSX.Element {
     setLoading(true);
     try {
       const { jwt, user } = await verifyOtp(pendingEmail, code);
-      setAuthData(jwt, user);
+      // Fetch full user with profileImage populated before saving to context
+      const fullUser = await getMe(jwt);
+      setAuthData(jwt, fullUser ?? user);
       sessionStorage.removeItem("pendingEmail");
       setMessage({ type: "success", text: "Email verified! Redirecting to dashboard…" });
       setTimeout(() => router.push("/dashboard/user"), 1000);

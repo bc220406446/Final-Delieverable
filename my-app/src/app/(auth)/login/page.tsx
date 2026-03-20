@@ -2,7 +2,7 @@
 import { JSX, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { loginUser } from "@/lib/api";
+import { loginUser, getMe } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
 interface Message { type: "error" | "success"; text: string }
@@ -74,14 +74,16 @@ export default function LoginPage(): JSX.Element {
     try {
       const { jwt, user } = await loginUser({ identifier: email, password });
 
-      // Save to context + localStorage.
-      setAuthData(jwt, user);
+      // Fetch full user with profileImage + bio + location populated.
+      // The raw login response doesn't include relations.
+      const fullUser = await getMe(jwt);
+      setAuthData(jwt, fullUser ?? user);
 
       setMessage({ type: "success", text: "Login successful! Redirecting…" });
 
       // Route admin users to admin dashboard, regular users to user dashboard.
       const destination =
-        user.role?.type === "admin" || user.role?.name?.toLowerCase() === "admin"
+        (fullUser ?? user).role?.type === "admin" || (fullUser ?? user).role?.name?.toLowerCase() === "admin"
           ? "/dashboard/admin"
           : "/dashboard/user";
 
