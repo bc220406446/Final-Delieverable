@@ -467,6 +467,47 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiRequestRequest extends Struct.CollectionTypeSchema {
+  collectionName: 'requests';
+  info: {
+    displayName: 'Request';
+    pluralName: 'requests';
+    singularName: 'request';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    accepted_skill_title: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::request.request'
+    > &
+      Schema.Attribute.Private;
+    message: Schema.Attribute.Text;
+    mode: Schema.Attribute.Enumeration<['Online', 'In-person']>;
+    offered_skill_id: Schema.Attribute.Integer;
+    offered_skill_title: Schema.Attribute.Text;
+    preferred_slot: Schema.Attribute.String;
+    provider_email: Schema.Attribute.Email;
+    provider_name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    requested_skill_id: Schema.Attribute.Integer;
+    requested_skill_title: Schema.Attribute.String;
+    requester_email: Schema.Attribute.Email;
+    requester_name: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<['pending', 'accepted', 'rejected']> &
+      Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiSkillSkill extends Struct.CollectionTypeSchema {
   collectionName: 'skills';
   info: {
@@ -1030,6 +1071,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::request.request': ApiRequestRequest;
       'api::skill.skill': ApiSkillSkill;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

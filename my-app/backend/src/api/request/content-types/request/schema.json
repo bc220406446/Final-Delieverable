@@ -1,0 +1,63 @@
+{
+  "kind": "collectionType",
+  "collectionName": "requests",
+  "info": {
+    "singularName": "request",
+    "pluralName": "requests",
+    "displayName": "Request"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "requester_name": {
+      "type": "string"
+    },
+    "requester_email": {
+      "type": "email"
+    },
+    "provider_name": {
+      "type": "string"
+    },
+    "provider_email": {
+      "type": "email"
+    },
+    "requested_skill_id": {
+      "type": "integer"
+    },
+    "requested_skill_title": {
+      "type": "string"
+    },
+    "offered_skill_id": {
+      "type": "integer"
+    },
+    "offered_skill_title": {
+      "type": "text"
+    },
+    "preferred_slot": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "enumeration",
+      "enum": [
+        "Online",
+        "In-person"
+      ]
+    },
+    "message": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "accepted",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "accepted_skill_title": {
+      "type": "string"
+    }
+  }
+}

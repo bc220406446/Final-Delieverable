@@ -5,10 +5,7 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { getApprovedSkills, StrapiSkill } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import SendRequestModal, {
-  SkillForRequest,
-  BookingDraft,
-} from "@/app/components/dashboard/user/request/SendRequestModal";
+import SendRequestModal, { SkillForRequest } from "@/app/components/dashboard/user/request/SendRequestModal";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
@@ -51,7 +48,7 @@ function Pill({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
       <span className="font-semibold text-gray-700">{label}:</span>{" "}
-      <span className="break-words text-gray-600">{value || "—"}</span>
+      <span className="wrap-break-word text-gray-600">{value || "—"}</span>
     </div>
   );
 }
@@ -115,8 +112,8 @@ export default function BrowseSkillsPage() {
     });
   }, [skills, category, city, level, q]);
 
-  function handleSend(skillId: string, _draft: BookingDraft) {
-    setSent((prev) => ({ ...prev, [Number(skillId)]: true }));
+  function handleSent() {
+    if (activeSkill) setSent((prev) => ({ ...prev, [activeSkill.id]: true }));
     setActiveSkill(null);
   }
 
@@ -261,7 +258,7 @@ export default function BrowseSkillsPage() {
       {skillForModal && (
         <SendRequestModal
           skill={skillForModal}
-          onSend={handleSend}
+          onSent={handleSent}
           onClose={() => setActiveSkill(null)}
         />
       )}

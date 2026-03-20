@@ -393,3 +393,98 @@ export async function updateSkill(
 }
 
 // uploadSkillImage removed — image is now uploaded via uploadFile() inside createSkill()
+
+// ─── Request Types ────────────────────────────────────────────────────────────
+
+export interface StrapiRequest {
+  id:                    number;
+  requester_name:        string;
+  requester_email:       string;
+  provider_name:         string;
+  provider_email:        string;
+  requested_skill_id:    number;
+  requested_skill_title: string;
+  offered_skill_id:      number;
+  offered_skill_title:   string;
+  preferred_slot:        string;
+  mode:                  "Online" | "In-person";
+  message:               string;
+  status:                "pending" | "accepted" | "rejected";
+  accepted_skill_title?: string;
+  createdAt:             string;
+}
+
+export interface MyRequestsResponse {
+  sent:     StrapiRequest[];
+  received: StrapiRequest[];
+}
+
+// ─── Request API ──────────────────────────────────────────────────────────────
+
+// Fetches sent and received requests for the logged-in user.
+export async function getMyRequests(token: string): Promise<MyRequestsResponse> {
+  return strapiRequest<MyRequestsResponse>("/api/requests/my-requests", {}, token);
+}
+
+// Sends a new skill exchange request.
+export async function createRequest(
+  payload: {
+    provider_name:         string;
+    provider_email:        string;
+    requested_skill_id:    number;
+    requested_skill_title: string;
+    offered_skill_id:      number;
+    offered_skill_title:   string;
+    preferred_slot:        string;
+    mode:                  "Online" | "In-person";
+    message:               string;
+  },
+  token: string
+): Promise<StrapiRequest> {
+  const res = await strapiRequest<{ data: StrapiRequest }>(
+    "/api/requests",
+    { method: "POST", body: JSON.stringify({ data: payload }) },
+    token
+  );
+  return res.data;
+}
+
+// Updates a pending request (requester edits their own request).
+export async function updateRequest(
+  id: number,
+  payload: { preferred_slot: string; mode: "Online" | "In-person"; message: string },
+  token: string
+): Promise<StrapiRequest> {
+  const res = await strapiRequest<{ data: StrapiRequest }>(
+    `/api/requests/${id}`,
+    { method: "PUT", body: JSON.stringify({ data: payload }) },
+    token
+  );
+  return res.data;
+}
+
+// Provider accepts a received request with the skill they will provide.
+export async function acceptRequest(
+  id: number,
+  token: string,
+  acceptedSkillTitle?: string
+): Promise<void> {
+  await strapiRequest(
+    `/api/requests/${id}/accept`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ data: { accepted_skill_title: acceptedSkillTitle ?? "" } }),
+    },
+    token
+  );
+}
+
+// Provider rejects a received request.
+export async function rejectRequest(id: number, token: string): Promise<void> {
+  await strapiRequest(`/api/requests/${id}/reject`, { method: "PATCH" }, token);
+}
+
+// Requester cancels their own pending request.
+export async function cancelRequest(id: number, token: string): Promise<void> {
+  await strapiRequest(`/api/requests/${id}`, { method: "DELETE" }, token);
+}
