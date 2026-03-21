@@ -7,13 +7,13 @@ export default function UserFooter() {
       <div>© 2025 Community Skills Exchange. All rights reserved.</div>
 
       <div className="flex gap-5">
-        <Link className="hover:text-green-700" href="/public/about">
+        <Link className="hover:text-green-700" href="/about">
           About
         </Link>
-        <Link className="hover:text-green-700" href="/public/faqs">
+        <Link className="hover:text-green-700" href="/faqs">
           FAQs
         </Link>
-        <Link className="hover:text-green-700" href="/public/policies">
+        <Link className="hover:text-green-700" href="/policies">
           Policies
         </Link>
       </div>

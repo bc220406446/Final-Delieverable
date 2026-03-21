@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState, useMemo, JSX } from "react";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
 import { getPasswordStrength } from "@/lib/passwordStrength";
 
 interface Message { type: "error" | "success"; text: string }
@@ -87,8 +86,6 @@ function OrDivider(): JSX.Element {
 
 export default function RegisterPage(): JSX.Element {
   const router = useRouter();
-  const { setAuthData } = useAuth();
-
   const [fullName,        setFullName]        = useState("");
   const [email,           setEmail]           = useState("");
   const [location,        setLocation]        = useState("");
@@ -112,8 +109,9 @@ export default function RegisterPage(): JSX.Element {
 
     setLoading(true);
     try {
-      const { jwt, user } = await registerUser({ username: email, email, password, fullName, location });
-      await setAuthData(jwt, user);
+      // Register but do NOT log in yet — user must verify OTP first.
+      // We only store the email so the OTP page can reference it.
+      await registerUser({ username: email, email, password, fullName, location });
       sessionStorage.setItem("pendingEmail", email);
       setMessage({ type: "success", text: "Account created! Redirecting to OTP verification…" });
       setTimeout(() => router.push("/otp-verification"), 1200);

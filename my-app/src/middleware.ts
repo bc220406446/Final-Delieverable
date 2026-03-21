@@ -14,11 +14,13 @@ const PROTECTED_PREFIXES = [
 const AUTH_ONLY_ROUTES = [
   "/login",
   "/register",
-  "/otp-verification",
   "/forgot-password",
   "/reset-password",
   "/confirm-email",
 ];
+
+// Public routes that are always accessible regardless of auth state
+const ALWAYS_PUBLIC = ["/logout", "/otp-verification", "/confirm-email"];
 
 export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
@@ -27,6 +29,11 @@ export function middleware(request: NextRequest): NextResponse {
   // Instead we use a cookie. We need to set this cookie on login.
   // Cookie name matches what we'll set in AuthContext.
   const token = request.cookies.get("csep_token")?.value;
+
+  // Always allow public routes through
+  if (ALWAYS_PUBLIC.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
 
   const isProtected  = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
   const isAuthOnly   = AUTH_ONLY_ROUTES.some((p) => pathname.startsWith(p));
@@ -52,9 +59,9 @@ export const config = {
     "/dashboard/:path*",
     "/login",
     "/register",
-    "/otp-verification",
-    "/forgot-password",
+      "/forgot-password",
     "/reset-password",
     "/confirm-email",
+    "/logout",
   ],
 };

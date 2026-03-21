@@ -1,39 +1,25 @@
 const OTP_TTL_MS = 10 * 60 * 1000;
 const es = () => strapi.entityService as any;
 
+// Finds user by ID first (preferred — no race condition), falls back to
+// email lookup with retries (used for resend flow).
 async function findUser(userId?: number, email?: string): Promise<any | null> {
-  strapi.log.info(`[CSEP] findUser called — userId=${userId}, email=${email}`);
-
-  // Path 1: find by ID (preferred, no race condition)
   if (userId) {
     try {
       const user = await es().findOne('plugin::users-permissions.user', userId);
-      if (user) {
-        strapi.log.info(`[CSEP] findUser: found by ID ${userId}`);
-        return user;
-      }
-      strapi.log.warn(`[CSEP] findUser: findOne returned null for id=${userId}`);
-    } catch (err: any) {
-      strapi.log.error(`[CSEP] findUser: findOne threw — ${err?.message}`);
-    }
+      if (user) return user;
+    } catch { /* fall through to email lookup */ }
   }
 
-  // Path 2: email lookup with retries
   if (email) {
     for (let i = 0; i < 5; i++) {
       const users = (await es().findMany(
         'plugin::users-permissions.user',
         { filters: { email: email.toLowerCase() } }
       )) as any[];
-
-      if (users && users.length > 0) {
-        strapi.log.info(`[CSEP] findUser: found by email on attempt ${i + 1}`);
-        return users[0];
-      }
-      strapi.log.info(`[CSEP] findUser: email lookup attempt ${i + 1}/5 — not found yet, waiting 400ms`);
+      if (users && users.length > 0) return users[0];
       await new Promise((r) => setTimeout(r, 400));
     }
-    strapi.log.error(`[CSEP] findUser: user not found after all retries for email=${email}`);
   }
 
   return null;
@@ -41,20 +27,14 @@ async function findUser(userId?: number, email?: string): Promise<any | null> {
 
 export default {
 
+  // POST /api/otp/send
   async send(ctx: any) {
     const { email, userId } = ctx.request.body as { email?: string; userId?: number };
-    strapi.log.info(`[CSEP] otp.send called — email=${email}, userId=${userId}`);
 
     if (!email) return ctx.badRequest('Email is required.');
 
     const user = await findUser(userId, email);
-
-    if (!user) {
-      strapi.log.warn(`[CSEP] otp.send: user not found, skipping email for ${email}`);
-      return ctx.send({ ok: true });
-    }
-
-    strapi.log.info(`[CSEP] otp.send: user found id=${user.id}, generating OTP`);
+    if (!user) return ctx.send({ ok: true }); // avoid email enumeration
 
     const otp       = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date(Date.now() + OTP_TTL_MS).toISOString();
@@ -64,13 +44,10 @@ export default {
       user.id,
       { data: { otpCode: otp, otpExpiry } as any }
     );
-    strapi.log.info(`[CSEP] otp.send: OTP saved to user ${user.id}`);
 
     const frontendUrl  = process.env.FRONTEND_URL ?? 'http://localhost:3000';
     const encodedEmail = encodeURIComponent(user.email);
     const confirmLink  = `${frontendUrl}/confirm-email?email=${encodedEmail}&code=${otp}`;
-
-    strapi.log.info(`[CSEP] otp.send: sending email to ${user.email}`);
 
     await (strapi.plugin('email').service('email') as any).send({
       to:      user.email,
@@ -101,10 +78,11 @@ export default {
       text: `Your CSEP verification code is: ${otp}\n\nOr verify instantly: ${confirmLink}\n\nThis code expires in 10 minutes.`,
     });
 
-    strapi.log.info(`[CSEP] otp.send: email successfully sent to ${user.email}`);
+    strapi.log.info(`[CSEP] OTP email sent to ${user.email}`);
     return ctx.send({ ok: true });
   },
 
+  // POST /api/otp/verify
   async verify(ctx: any) {
     const { email, code } = ctx.request.body as { email?: string; code?: string };
 

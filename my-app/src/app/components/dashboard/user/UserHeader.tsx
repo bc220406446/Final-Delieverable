@@ -4,6 +4,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
@@ -17,11 +19,15 @@ const NAV_LINKS = [
   { label: "Report Abuse",      href: "/dashboard/user/report-abuse" },
 ];
 
-type UserHeaderProps = {
-  userName?: string;
-};
+export default function UserHeader() {
+  const { user, logout } = useAuth();
+  const userName = user?.fullName || user?.username || "User";
+  const router = useRouter();
 
-export default function UserHeader({ userName = "Muhammad Kamran" }: UserHeaderProps) {
+  async function handleLogout() {
+    await logout();
+    router.push("/logout");
+  }
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -86,12 +92,12 @@ export default function UserHeader({ userName = "Muhammad Kamran" }: UserHeaderP
             </Link>
 
             {/* Logout action shown on larger breakpoints for quick sign-out. */}
-            <Link
-              href="/logout"
+            <button
+              onClick={handleLogout}
               className="hidden sm:inline-flex bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition text-sm font-semibold"
             >
               Logout
-            </Link>
+            </button>
 
             {/* Hamburger - visible below lg (sidebar takes over at lg) */}
             <button
@@ -178,13 +184,12 @@ export default function UserHeader({ userName = "Muhammad Kamran" }: UserHeaderP
               >
                 Return to Home
               </Link>
-              <Link
-                href="/logout"
-                onClick={() => setMenuOpen(false)}
+              <button
+                onClick={() => { setMenuOpen(false); handleLogout(); }}
                 className="flex items-center justify-center bg-green-600 text-white px-4 py-2.5 rounded-xl hover:bg-green-700 transition text-sm font-semibold"
               >
                 Logout
-              </Link>
+              </button>
             </div>
           </div>
         </>

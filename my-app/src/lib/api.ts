@@ -48,6 +48,7 @@ export interface AuthResponse {
 }
 
 export interface RegisterPayload {
+  username: string;
   email: string;
   password: string;
   fullName: string;
@@ -707,4 +708,23 @@ export async function getHomePage(): Promise<CmsHomePage | null> {
       "/api/home-page?populate[hero_image]=true&populate[categories][populate][image]=true&populate[steps]=true&populate[team_members][populate][image]=true"
     ) as CmsHomePage;
   } catch { return null; }
+}
+
+// ─── Skill Category ───────────────────────────────────────────────────────────
+
+export interface StrapiSkillCategory {
+  id:          number;
+  name:        string;
+  description: string;
+  image?:      { url: string } | null;
+}
+
+// Fetch all skill categories — used in add/edit skill form and browse filter.
+export async function getSkillCategories(token: string): Promise<StrapiSkillCategory[]> {
+  const res = await strapiRequest<{ data: StrapiSkillCategory[] }>(
+    "/api/skill-categories?populate[image]=true",
+    {},
+    token
+  );
+  return res.data ?? [];
 }
