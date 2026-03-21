@@ -502,36 +502,6 @@ export interface ApiAboutPageAboutPage extends Struct.SingleTypeSchema {
   };
 }
 
-export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
-  collectionName: 'categories';
-  info: {
-    displayName: 'skill-category';
-    pluralName: 'categories';
-    singularName: 'category';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    desc: Schema.Attribute.Text;
-    image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::category.category'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    title: Schema.Attribute.String;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiExchangeExchange extends Struct.CollectionTypeSchema {
   collectionName: 'exchanges';
   info: {
@@ -807,13 +777,13 @@ export interface ApiSkillSkill extends Struct.CollectionTypeSchema {
     availability: Schema.Attribute.String;
     category: Schema.Attribute.Enumeration<
       [
-        'Cognitive',
-        'Technical',
-        'Interpersonal',
-        'Personal',
-        'Organizational',
-        'Digital',
-        'Language',
+        'Cognitive / Intellectual Skills',
+        'Technical / Hard Skills',
+        'Interpersonal / People Skills',
+        'Personal / Self-Management Skills',
+        'Organizational / Management Skills',
+        'Digital / IT Skills',
+        'Language / Communication',
       ]
     >;
     createdAt: Schema.Attribute.DateTime;
@@ -1357,7 +1327,6 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::about-page.about-page': ApiAboutPageAboutPage;
-      'api::category.category': ApiCategoryCategory;
       'api::exchange.exchange': ApiExchangeExchange;
       'api::faq-page.faq-page': ApiFaqPageFaqPage;
       'api::home-page.home-page': ApiHomePageHomePage;

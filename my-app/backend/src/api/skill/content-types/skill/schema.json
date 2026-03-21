@@ -20,13 +20,13 @@
     "category": {
       "type": "enumeration",
       "enum": [
-        "Cognitive",
-        "Technical",
-        "Interpersonal",
-        "Personal",
-        "Organizational",
-        "Digital",
-        "Language"
+        "Cognitive / Intellectual Skills",
+        "Technical / Hard Skills",
+        "Interpersonal / People Skills",
+        "Personal / Self-Management Skills",
+        "Organizational / Management Skills",
+        "Digital / IT Skills",
+        "Language / Communication"
       ]
     },
     "level": {

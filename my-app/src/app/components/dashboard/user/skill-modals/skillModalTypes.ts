@@ -38,13 +38,13 @@ export interface SkillPayload {
 }
 
 export const CATEGORIES: Category[] = [
-  { id: "Cognitive",      label: "Cognitive / Intellectual Skills"    },
-  { id: "Technical",      label: "Technical / Hard Skills"            },
-  { id: "Interpersonal",  label: "Interpersonal / People Skills"      },
-  { id: "Personal",       label: "Personal / Self-Management Skills"  },
-  { id: "Organizational", label: "Organizational / Management Skills" },
-  { id: "Digital",        label: "Digital / IT Skills"                },
-  { id: "Language",       label: "Language / Communication"           },
+  { id: "Cognitive / Intellectual Skills",      label: "Cognitive / Intellectual Skills"    },
+  { id: "Technical / Hard Skills",      label: "Technical / Hard Skills"            },
+  { id: "Interpersonal / People Skills",  label: "Interpersonal / People Skills"      },
+  { id: "Personal / Self-Management Skills",       label: "Personal / Self-Management Skills"  },
+  { id: "Organizational / Management Skills", label: "Organizational / Management Skills" },
+  { id: "Digital / IT Skills",        label: "Digital / IT Skills"                },
+  { id: "Language / Communication",       label: "Language / Communication"           },
 ];
 
 export const CITIES = [
