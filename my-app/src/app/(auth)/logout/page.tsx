@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, JSX } from "react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -30,13 +29,19 @@ export default function LogoutPage(): JSX.Element {
 
         {/* Success icon section indicating logout completion. */}
         <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-5">
-          <Image
-            src="/icons/actionComplete.svg"
-            width={40}
-            height={40}
-            alt="Signed out"
-            priority
-          />
+          <svg
+            className="w-10 h-10 text-green-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="rgb(22 161 74)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
         </div>
 
         {/* Confirmation text related to the completed sign-out action. */}

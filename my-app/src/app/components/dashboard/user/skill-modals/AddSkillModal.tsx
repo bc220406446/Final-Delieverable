@@ -71,7 +71,7 @@ export default function AddSkillModal({ onSave, onClose }: Props): JSX.Element {
         level:        form.level as "Beginner" | "Intermediate" | "Expert",
         location:     form.city || "Online",
         availability: form.slots.trim(),
-        imageSrc:     form.imagePreview ?? "/images/skills/default.jpg",
+        imageSrc:     form.imagePreview ?? "",
         imageFile:    form.imageFile,
       });
     } finally {

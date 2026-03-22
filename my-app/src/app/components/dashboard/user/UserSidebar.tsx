@@ -41,7 +41,7 @@ export default function UserSidebar() {
           <div className="flex items-center gap-3">
 
             {/* Avatar — profileImage from Strapi or default noProfileImage */}
-            <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 bg-gray-100">
+            <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 bg-gray-100 border-3 border-green-100">
               <Image
                 src={avatarUrl ?? "/images/noProfileImage.png"}
                 fill

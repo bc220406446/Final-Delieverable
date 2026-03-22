@@ -5,9 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { verifyOtp } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
-// Handles the "Verify My Email" button click from the confirmation email.
-// URL format: /confirm-email?email=<encoded_email>&code=<6digit_otp>
-// Calls our /api/otp/verify directly — no Strapi token redirect needed.
 export default function ConfirmEmailPage(): JSX.Element {
   const router          = useRouter();
   const searchParams    = useSearchParams();
@@ -26,18 +23,25 @@ export default function ConfirmEmailPage(): JSX.Element {
       return;
     }
 
-    verifyOtp(decodeURIComponent(email), code)
-      .then(({ jwt, user }) => {
+    // Use async function inside useEffect to allow await
+    async function verify() {
+      try {
+        const { jwt, user } = await verifyOtp(decodeURIComponent(email!), code!);
         await setAuthData(jwt, user);
         sessionStorage.removeItem("pendingEmail");
         setStatus("success");
-        // Redirect to dashboard after a short success flash.
         setTimeout(() => router.push("/dashboard/user"), 1500);
-      })
-      .catch((err: Error) => {
+      } catch (err) {
         setStatus("error");
-        setErrorMsg(err.message ?? "Verification failed. The link may have expired.");
-      });
+        setErrorMsg(
+          err instanceof Error
+            ? err.message
+            : "Verification failed. The link may have expired."
+        );
+      }
+    }
+
+    verify();
   }, [searchParams, setAuthData, router]);
 
   return (

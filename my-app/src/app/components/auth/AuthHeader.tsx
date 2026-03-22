@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { JSX } from "react";
 
 // Renders the auth layout header with branding and quick navigation back to home.
@@ -13,13 +12,12 @@ export default function AuthHeader(): JSX.Element {
           href="/"
           className="flex items-center gap-2 text-base font-extrabold text-green-700"
         >
-          <Image
-            src="/icons/logo.svg"
-            width={30}
-            height={30}
-            alt="Community Skills Exchange Logo"
-            priority
-          />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgb(22 161 74)" strokeWidth="2" width={30} height={30} aria-hidden="true">
+            <circle cx="12" cy="8" r="3"/>
+            <circle cx="6" cy="15" r="3"/>
+            <circle cx="18" cy="15" r="3"/>
+            <path d="M12 11v4M9 13l-3 2M15 13l3 2"/>
+          </svg>
           {/* Brand name text supporting logo identity in auth screens. */}
           <span className="text-base font-extrabold text-green-700">Community Skills Exchange</span>
         </Link>

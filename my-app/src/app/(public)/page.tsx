@@ -22,7 +22,7 @@ function SectionHeading({ children }: { children: React.ReactNode }): JSX.Elemen
 }
 
 function CategoryCard({ title, desc, image }: CmsCategoryCard): JSX.Element {
-  const imgUrl = resolveUrl(image?.url) ?? "/images/categories/cognitive.jpg";
+  const imgUrl = resolveUrl(image?.url) ?? "";
   return (
     <div className="group cursor-pointer bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition duration-300">
       <div className="relative h-40 overflow-hidden">
@@ -49,7 +49,7 @@ function StepCard({ num, title, desc }: CmsStepCard): JSX.Element {
 }
 
 function TeamCard({ name, role, desc, image }: CmsTeamMember): JSX.Element {
-  const imgUrl = resolveUrl(image?.url) ?? "/images/noProfileImage.png";
+  const imgUrl = resolveUrl(image?.url) ?? "";
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center hover:shadow-lg transition">
       <div className="relative w-24 h-24 mx-auto mb-4">
@@ -92,7 +92,7 @@ export default function HomePage(): JSX.Element {
     );
   }
 
-  const heroImgUrl = resolveUrl(data.hero_image?.url) ?? "/images/coverImage.jpg";
+  const heroImgUrl = resolveUrl(data.hero_image?.url) ?? "";
 
   return (
     <main className="bg-gray-50 text-gray-800">

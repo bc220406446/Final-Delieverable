@@ -4,6 +4,11 @@ import { getAboutPage, CmsProblemBlock, CmsTeamMember } from "@/lib/api";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
+function resolveUrl(url?: string | null): string | null {
+  if (!url) return null;
+  return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
+}
+
 function SectionHeading({ children }: { children: React.ReactNode }): JSX.Element {
   return <h2 className="text-2xl md:text-3xl font-extrabold text-center text-green-900 mb-8">{children}</h2>;
 }
@@ -50,9 +55,8 @@ export default async function AboutPage(): Promise<JSX.Element> {
     );
   }
 
-  const heroImgUrl = data.hero_image?.url
-    ? (data.hero_image.url.startsWith("http") ? data.hero_image.url : `${STRAPI_URL}${data.hero_image.url}`)
-    : "/images/coverImage.jpg";
+const heroImgUrl = resolveUrl(data.hero_image?.url) ?? "";
+
 
   return (
     <main className="bg-gray-50 text-gray-800">

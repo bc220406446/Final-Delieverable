@@ -6,6 +6,11 @@ import { getFaqPage, CmsFaqItem } from "@/lib/api";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
+function resolveUrl(url?: string | null): string | null {
+  if (!url) return null;
+  return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
+}
+
 function FaqAccordion({ faqs }: { faqs: CmsFaqItem[] }): JSX.Element {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   return (
@@ -62,9 +67,7 @@ export default function FaqsPage(): JSX.Element {
     );
   }
 
-  const heroImgUrl = data.hero_image?.url
-    ? (data.hero_image.url.startsWith("http") ? data.hero_image.url : `${STRAPI_URL}${data.hero_image.url}`)
-    : "/images/coverImage.jpg";
+  const heroImgUrl = resolveUrl(data.hero_image?.url) ?? "null";
 
   return (
     <main className="bg-gray-50 text-gray-800">

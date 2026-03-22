@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect, JSX } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -32,7 +31,12 @@ function DashboardButton(): JSX.Element {
       aria-label="Dashboard"
       title={isAuthenticated ? "Go to Dashboard" : "Login to access Dashboard"}
     >
-      <Image src="/icons/dashboard.svg" width={20} height={20} alt="Dashboard" />
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="rgb(22 161 74)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="10" r="3" />
+        <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
+      </svg>
     </button>
   );
 }
@@ -100,7 +104,12 @@ function MobileMenu(): JSX.Element {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <Image src="/icons/logo.svg" width={24} height={24} alt="CSE Logo" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgb(22 161 74)" strokeWidth="2" width={24} height={24} aria-hidden="true">
+            <circle cx="12" cy="8" r="3"/>
+            <circle cx="6" cy="15" r="3"/>
+            <circle cx="18" cy="15" r="3"/>
+            <path d="M12 11v4M9 13l-3 2M15 13l3 2"/>
+          </svg>
             <span className="text-sm font-extrabold text-green-700">Community Skills Exchange</span>
           </div>
           <button onClick={() => setOpen(false)} aria-label="Close menu"
@@ -174,7 +183,12 @@ export default function Header(): JSX.Element {
 
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2 text-base font-extrabold text-green-700">
-          <Image src="/icons/logo.svg" width={30} height={30} alt="Community Skills Exchange Logo" priority />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgb(22 161 74)" strokeWidth="2" width={30} height={30} aria-hidden="true">
+            <circle cx="12" cy="8" r="3"/>
+            <circle cx="6" cy="15" r="3"/>
+            <circle cx="18" cy="15" r="3"/>
+            <path d="M12 11v4M9 13l-3 2M15 13l3 2"/>
+          </svg>
           <span>Community Skills Exchange</span>
         </Link>
 

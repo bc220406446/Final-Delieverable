@@ -23,17 +23,17 @@ export default function MyProfilePage(): JSX.Element {
 
   // Always read directly from auth context — setAuthData in modal updates
   // context + localStorage so data persists across refreshes.
-  const displayName     = user?.fullName   || user?.username || "User";
-  const displayEmail    = user?.email      || "";
+  const displayName = user?.fullName || user?.username || "User";
+  const displayEmail = user?.email || "";
   const displayLocation = (user as any)?.location || "";
-  const displayBio      = (user as any)?.bio      || "";
-  const displayAvatar   = resolveAvatarUrl(user?.profileImage) ?? "/images/noProfileImage.png";
+  const displayBio = (user as any)?.bio || "";
+  const displayAvatar = resolveAvatarUrl(user?.profileImage) ?? "/images/noProfileImage.png";
 
   // Profile for the modal pre-fill
   const profileForModal: ProfileData = {
-    name:      displayName,
-    location:  displayLocation,
-    about:     displayBio,
+    name: displayName,
+    location: displayLocation,
+    about: displayBio,
     avatarSrc: displayAvatar,
   };
 
@@ -86,7 +86,17 @@ export default function MyProfilePage(): JSX.Element {
 
             {displayLocation ? (
               <p className="flex items-center gap-1.5 text-sm text-gray-600">
-                <Image src="/icons/location.svg" alt="Location" width={14} height={14} />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
                 {displayLocation}
               </p>
             ) : (
