@@ -21,7 +21,7 @@ function DashboardButton(): JSX.Element {
 
   function handleClick() {
     if (isLoading) return;
-    router.push(isAuthenticated ? "/dashboard/user" : "/login");
+    router.push(isAuthenticated ? "/dashboard/user" : "/login"); // admin uses Strapi admin panel directly
   }
 
   return (
