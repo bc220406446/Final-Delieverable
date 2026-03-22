@@ -178,11 +178,20 @@ export async function confirmEmailToken(token: string): Promise<{ jwt: string; u
 
 // ─── Skill Types ──────────────────────────────────────────────────────────────
 
+export interface StrapiSkillCategory {
+  id: number;
+  name: string;
+  description: string;
+  image?: { url: string } | null;
+}
+
 export interface StrapiSkill {
   id: number;
   title: string;
   description: string;
-  category: string;
+  // After relation migration: category is an object { id, name }.
+  // resolveSkillCategory() always gives you the plain name string.
+  category: StrapiSkillCategory | null;
   level: string;
   location: string;
   availability: string;
@@ -191,6 +200,13 @@ export interface StrapiSkill {
   provider_email: string;
   publishedAt: string | null;
   image?: { url: string } | null;
+}
+
+// Always returns the category name string regardless of data shape.
+export function resolveSkillCategory(skill: StrapiSkill): string {
+  if (!skill.category) return "";
+  if (typeof skill.category === "string") return skill.category as string;
+  return (skill.category as StrapiSkillCategory).name ?? "";
 }
 
 // Strapi v5 REST returns flat objects: { id, title, ... } not { id, attributes: {...} }
@@ -208,9 +224,9 @@ export async function getSkillsByState(
 ): Promise<StrapiSkill[]> {
   const params = new URLSearchParams({
     "filters[state][$eq]": state,
-    "populate": "image",
+    "populate[image]": "true",
+    "populate[category]": "true",
     "pagination[limit]": "200",
-    // Include drafts (pending/rejected are unpublished)
     "publicationState": "preview",
   });
 
@@ -222,8 +238,8 @@ export async function getSkillsByState(
 
   return res.data.map((item: any) => ({
     ...item,
-    // Strapi v5: image is flat { id, url, ... } not wrapped in data.attributes
     image: item.image?.url ? item.image : item.image?.data?.attributes ?? item.image ?? null,
+    category: item.category?.data?.attributes ?? item.category?.data ?? item.category ?? null,
   }));
 }
 
@@ -251,7 +267,8 @@ export async function deleteSkill(id: number, token: string): Promise<void> {
 export async function getApprovedSkills(token: string): Promise<StrapiSkill[]> {
   const params = new URLSearchParams({
     "filters[state][$eq]": "approved",
-    "populate": "image",
+    "populate[image]": "true",
+    "populate[category]": "true",
     "pagination[limit]": "200",
   });
 
@@ -264,6 +281,7 @@ export async function getApprovedSkills(token: string): Promise<StrapiSkill[]> {
   return res.data.map((item: any) => ({
     ...item,
     image: item.image?.url ? item.image : item.image?.data?.attributes ?? item.image ?? null,
+    category: item.category?.data?.attributes ?? item.category?.data ?? item.category ?? null,
   }));
 }
 
@@ -272,9 +290,10 @@ export async function getApprovedSkills(token: string): Promise<StrapiSkill[]> {
 // Fetches skills belonging to the currently logged-in user.
 export async function getMySkills(token: string): Promise<StrapiSkill[]> {
   const params = new URLSearchParams({
-    "populate": "image",
+    "populate[image]": "true",
+    "populate[category]": "true",
     "pagination[limit]": "200",
-    "publicationState": "preview", // include pending drafts
+    "publicationState": "preview",
   });
 
   const res = await strapiRequest<StrapiSkillsResponse>(
@@ -283,14 +302,19 @@ export async function getMySkills(token: string): Promise<StrapiSkill[]> {
     token
   );
 
-  return res.data.map((item: any) => ({
-    ...(item.attributes ?? item),
-    id: item.id ?? (item.attributes ?? item).id,
-    image: item.attributes?.image?.data?.attributes
-      ?? item.attributes?.image
-      ?? item.image
-      ?? null,
-  }));
+  return res.data.map((item: any) => {
+    const base = item.attributes ?? item;
+    return {
+      ...base,
+      id: item.id ?? base.id,
+      image: base.image?.data?.attributes ?? base.image ?? null,
+      // Relation: category comes back as { id, name, ... } flat object
+      category: base.category?.data?.attributes
+        ?? base.category?.data
+        ?? base.category
+        ?? null,
+    };
+  });
 }
 
 // Uploads a file to Strapi media library and returns its media ID.
@@ -322,7 +346,7 @@ export async function createSkill(
   payload: {
     title: string;
     description: string;
-    category: string;
+    category: string | number; // name (legacy) or id (relation)
     level: string;
     location: string;
     availability: string;
@@ -332,13 +356,15 @@ export async function createSkill(
   token: string,
   imageFile?: File | null
 ): Promise<StrapiSkill> {
-  // Step 1 — upload image first if provided, get media ID
   let imageId: number | undefined;
-  if (imageFile) {
-    imageId = await uploadFile(imageFile, token);
-  }
+  if (imageFile) imageId = await uploadFile(imageFile, token);
 
-  // Step 2 — create skill with image ID attached in the same request
+  // If category is a numeric string or number, send as relation id
+  // If it's a name string, send as-is (legacy fallback)
+  const categoryValue = typeof payload.category === "number" || /^\d+$/.test(String(payload.category))
+    ? Number(payload.category)
+    : payload.category;
+
   const res = await strapiRequest<{ data: { id: number; attributes: any } }>(
     "/api/skills",
     {
@@ -346,6 +372,7 @@ export async function createSkill(
       body: JSON.stringify({
         data: {
           ...payload,
+          category: categoryValue,
           state: "pending",
           ...(imageId ? { image: imageId } : {}),
         },
@@ -712,13 +739,6 @@ export async function getHomePage(): Promise<CmsHomePage | null> {
 }
 
 // ─── Skill Category ───────────────────────────────────────────────────────────
-
-export interface StrapiSkillCategory {
-  id: number;
-  name: string;
-  description: string;
-  image?: { url: string } | null;
-}
 
 // Fetch all skill categories — used in add/edit skill form and browse filter.
 export async function getSkillCategories(token: string): Promise<StrapiSkillCategory[]> {

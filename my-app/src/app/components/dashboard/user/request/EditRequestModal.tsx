@@ -5,7 +5,7 @@
 import { useState, useEffect, JSX } from "react";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
-import { getMySkills, StrapiSkill } from "@/lib/api";
+import { getMySkills, StrapiSkill, resolveSkillCategory } from "@/lib/api";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
@@ -208,7 +208,7 @@ export default function EditRequestModal({ request, onSave, onClose }: Props): J
                                 {s.title}
                               </div>
                               <div className="text-xs text-gray-500 mt-0.5">
-                                {s.category} · {s.level}
+                                {resolveSkillCategory(s)} · {s.level}
                               </div>
                             </div>
 

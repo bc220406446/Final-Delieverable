@@ -9,7 +9,7 @@ import {
   createSkill,
   updateSkill,
   deleteSkill,
-  StrapiSkill,
+  StrapiSkill, resolveSkillCategory,
 } from "@/lib/api";
 import AddSkillModal from "@/app/components/dashboard/user/skill-modals/AddSkillModal";
 import EditSkillModal, { ExistingSkill } from "@/app/components/dashboard/user/skill-modals/EditSkillModal";
@@ -36,7 +36,7 @@ function Pill({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
       <span className="font-semibold text-gray-700">{label}:</span>{" "}
-      <span className="wrap-break-word text-gray-600">{value || "—"}</span>
+      <span className="break-words text-gray-600">{value || "—"}</span>
     </div>
   );
 }
@@ -178,7 +178,7 @@ export default function MyOfferedSkillsPage(): JSX.Element {
       id:           String(skill.id),
       title:        skill.title,
       description:  skill.description,
-      category:     skill.category,
+      category:     resolveSkillCategory(skill),
       level:        skill.level as "Beginner" | "Intermediate" | "Expert",
       location:     skill.location,
       availability: skill.availability,
@@ -276,7 +276,7 @@ export default function MyOfferedSkillsPage(): JSX.Element {
                       </p>
 
                       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <Pill label="Category"     value={skill.category}    />
+                        <Pill label="Category"     value={resolveSkillCategory(skill)}    />
                         <Pill label="Level"        value={skill.level}       />
                         <Pill label="Location"     value={skill.location}    />
                         <Pill label="Availability" value={skill.availability}/>

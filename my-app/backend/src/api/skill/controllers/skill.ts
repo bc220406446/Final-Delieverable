@@ -16,7 +16,7 @@ export default factories.createCoreController('api::skill.skill', ({ strapi }) =
 
     const skills = await es().findMany('api::skill.skill', {
       filters:          { provider_email: user.email },
-      populate:         { image: true },
+      populate:         { image: true, category: true },
       publicationState: 'preview',
       pagination:       { limit: 200 },
     });

@@ -6,15 +6,16 @@ import Image from "next/image";
 import {
   SkillFormState,
   SkillFormErrors,
-  CATEGORIES,
+  Category,
   CITIES,
   inputCls,
 } from "./skillModalTypes";
 
 interface Props {
-  form: SkillFormState;
-  errors: SkillFormErrors;
-  onChange: <K extends keyof SkillFormState>(key: K, value: SkillFormState[K]) => void;
+  form:       SkillFormState;
+  errors:     SkillFormErrors;
+  categories: Category[];   // loaded from Strapi
+  onChange:   <K extends keyof SkillFormState>(key: K, value: SkillFormState[K]) => void;
 }
 
 function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }): JSX.Element {
@@ -33,7 +34,7 @@ function FieldError({ msg }: { msg?: string }): JSX.Element | null {
   return <p className="mt-1 text-xs text-red-500">{msg}</p>;
 }
 
-export default function SkillFormFields({ form, errors, onChange }: Props): JSX.Element {
+export default function SkillFormFields({ form, errors, categories, onChange }: Props): JSX.Element {
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -124,7 +125,7 @@ export default function SkillFormFields({ form, errors, onChange }: Props): JSX.
           onChange={(e) => onChange("categoryId", e.target.value)}
         >
           <option value="">Select category…</option>
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.label}</option>
           ))}
         </select>

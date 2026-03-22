@@ -37,15 +37,14 @@ export interface SkillPayload {
   imageFile?: File | null; // actual File for upload to Strapi
 }
 
-export const CATEGORIES: Category[] = [
-  { id: "Cognitive / Intellectual Skills",      label: "Cognitive / Intellectual Skills"    },
-  { id: "Technical / Hard Skills",      label: "Technical / Hard Skills"            },
-  { id: "Interpersonal / People Skills",  label: "Interpersonal / People Skills"      },
-  { id: "Personal / Self-Management Skills",       label: "Personal / Self-Management Skills"  },
-  { id: "Organizational / Management Skills", label: "Organizational / Management Skills" },
-  { id: "Digital / IT Skills",        label: "Digital / IT Skills"                },
-  { id: "Language / Communication",       label: "Language / Communication"           },
-];
+// Categories are now loaded from Strapi skill-category collection.
+// This empty default is used as initial state before fetch completes.
+export const CATEGORIES: Category[] = [];
+
+// Converts a StrapiSkillCategory array to the Category[] shape used by forms.
+export function toCategories(strapiCategories: { id: number; name: string }[]): Category[] {
+  return strapiCategories.map((c) => ({ id: String(c.id), label: c.name }));
+}
 
 export const CITIES = [
   "Islamabad", "Rawalpindi", "Lahore",   "Karachi",    "Faisalabad",

@@ -18,16 +18,10 @@
       "type": "text"
     },
     "category": {
-      "type": "enumeration",
-      "enum": [
-        "Cognitive / Intellectual Skills",
-        "Technical / Hard Skills",
-        "Interpersonal / People Skills",
-        "Personal / Self-Management Skills",
-        "Organizational / Management Skills",
-        "Digital / IT Skills",
-        "Language / Communication"
-      ]
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::skill-category.skill-category",
+      "inversedBy": "skills"
     },
     "level": {
       "type": "enumeration",
