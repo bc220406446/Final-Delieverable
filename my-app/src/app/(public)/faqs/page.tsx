@@ -4,6 +4,8 @@ import { useState, useEffect, JSX } from "react";
 import Image from "next/image";
 import { getFaqPage, CmsFaqItem } from "@/lib/api";
 
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
+
 function FaqAccordion({ faqs }: { faqs: CmsFaqItem[] }): JSX.Element {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   return (
@@ -34,7 +36,7 @@ function FaqAccordion({ faqs }: { faqs: CmsFaqItem[] }): JSX.Element {
 }
 
 export default function FaqsPage(): JSX.Element {
-  const [data,    setData]    = useState<Awaited<ReturnType<typeof getFaqPage>>>(null);
+  const [data, setData] = useState<Awaited<ReturnType<typeof getFaqPage>>>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,6 +62,10 @@ export default function FaqsPage(): JSX.Element {
     );
   }
 
+  const heroImgUrl = data.hero_image?.url
+    ? (data.hero_image.url.startsWith("http") ? data.hero_image.url : `${STRAPI_URL}${data.hero_image.url}`)
+    : "/images/coverImage.jpg";
+
   return (
     <main className="bg-gray-50 text-gray-800">
       <section className="bg-linear-to-br from-green-700 to-green-500 text-white py-20 px-5">
@@ -69,7 +75,7 @@ export default function FaqsPage(): JSX.Element {
             <p className="mt-4 text-sm md:text-base leading-relaxed opacity-90">{data.hero_description}</p>
           </div>
           <div className="relative w-full h-72 md:h-80">
-            <Image src="/images/coverImage.jpg" alt="FAQ illustration" fill className="rounded-2xl shadow-2xl object-cover" priority unoptimized />
+            <Image src={heroImgUrl} alt="People collaborating" fill className="rounded-2xl shadow-2xl object-cover" priority unoptimized />
           </div>
         </div>
       </section>

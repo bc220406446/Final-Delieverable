@@ -17,7 +17,7 @@ async function strapiRequest<T>(
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res  = await fetch(`${STRAPI_URL}${endpoint}`, { ...options, headers });
+  const res = await fetch(`${STRAPI_URL}${endpoint}`, { ...options, headers });
   const data = await res.json();
 
   if (!res.ok) {
@@ -68,7 +68,7 @@ export async function registerUser(payload: RegisterPayload): Promise<AuthRespon
     method: "POST",
     body: JSON.stringify({
       username: payload.email,
-      email:    payload.email,
+      email: payload.email,
       password: payload.password,
       fullName: payload.fullName,
       location: payload.location,
@@ -126,15 +126,15 @@ export async function updateUserAvatar(
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
   const formData = new FormData();
-  formData.append("files",  file);
-  formData.append("ref",    "plugin::users-permissions.user");
-  formData.append("refId",  String(userId));
-  formData.append("field",  "profileImage");
+  formData.append("files", file);
+  formData.append("ref", "plugin::users-permissions.user");
+  formData.append("refId", String(userId));
+  formData.append("field", "profileImage");
 
   const res = await fetch(`${strapiUrl}/api/upload`, {
-    method:  "POST",
+    method: "POST",
     headers: { Authorization: `Bearer ${token}` },
-    body:    formData,
+    body: formData,
   });
 
   if (!res.ok) {
@@ -179,17 +179,17 @@ export async function confirmEmailToken(token: string): Promise<{ jwt: string; u
 // ─── Skill Types ──────────────────────────────────────────────────────────────
 
 export interface StrapiSkill {
-  id:            number;
-  title:         string;
-  description:   string;
-  category:      string;
-  level:         string;
-  location:      string;
-  availability:  string;
-  state:         "pending" | "approved" | "rejected";
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  level: string;
+  location: string;
+  availability: string;
+  state: "pending" | "approved" | "rejected";
   provider_name: string;
   provider_email: string;
-  publishedAt:   string | null;
+  publishedAt: string | null;
   image?: { url: string } | null;
 }
 
@@ -208,10 +208,10 @@ export async function getSkillsByState(
 ): Promise<StrapiSkill[]> {
   const params = new URLSearchParams({
     "filters[state][$eq]": state,
-    "populate":            "image",
-    "pagination[limit]":   "200",
+    "populate": "image",
+    "pagination[limit]": "200",
     // Include drafts (pending/rejected are unpublished)
-    "publicationState":    "preview",
+    "publicationState": "preview",
   });
 
   const res = await strapiRequest<StrapiSkillsResponse>(
@@ -251,8 +251,8 @@ export async function deleteSkill(id: number, token: string): Promise<void> {
 export async function getApprovedSkills(token: string): Promise<StrapiSkill[]> {
   const params = new URLSearchParams({
     "filters[state][$eq]": "approved",
-    "populate":            "image",
-    "pagination[limit]":   "200",
+    "populate": "image",
+    "pagination[limit]": "200",
   });
 
   const res = await strapiRequest<StrapiSkillsResponse>(
@@ -272,8 +272,8 @@ export async function getApprovedSkills(token: string): Promise<StrapiSkill[]> {
 // Fetches skills belonging to the currently logged-in user.
 export async function getMySkills(token: string): Promise<StrapiSkill[]> {
   const params = new URLSearchParams({
-    "populate":         "image",
-    "pagination[limit]":"200",
+    "populate": "image",
+    "pagination[limit]": "200",
     "publicationState": "preview", // include pending drafts
   });
 
@@ -285,24 +285,24 @@ export async function getMySkills(token: string): Promise<StrapiSkill[]> {
 
   return res.data.map((item: any) => ({
     ...(item.attributes ?? item),
-    id:    item.id ?? (item.attributes ?? item).id,
+    id: item.id ?? (item.attributes ?? item).id,
     image: item.attributes?.image?.data?.attributes
-        ?? item.attributes?.image
-        ?? item.image
-        ?? null,
+      ?? item.attributes?.image
+      ?? item.image
+      ?? null,
   }));
 }
 
 // Uploads a file to Strapi media library and returns its media ID.
 export async function uploadFile(file: File, token: string): Promise<number> {
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
-  const formData  = new FormData();
+  const formData = new FormData();
   formData.append("files", file);
 
   const res = await fetch(`${strapiUrl}/api/upload`, {
-    method:  "POST",
+    method: "POST",
     headers: { Authorization: `Bearer ${token}` },
-    body:    formData,
+    body: formData,
     // Do NOT set Content-Type — browser sets multipart boundary automatically
   });
 
@@ -320,13 +320,13 @@ export async function uploadFile(file: File, token: string): Promise<number> {
 // If imageFile is provided, uploads it first then attaches via image ID.
 export async function createSkill(
   payload: {
-    title:          string;
-    description:    string;
-    category:       string;
-    level:          string;
-    location:       string;
-    availability:   string;
-    provider_name:  string;
+    title: string;
+    description: string;
+    category: string;
+    level: string;
+    location: string;
+    availability: string;
+    provider_name: string;
     provider_email: string;
   },
   token: string,
@@ -360,11 +360,11 @@ export async function createSkill(
 export async function updateSkill(
   id: number,
   payload: {
-    title:        string;
-    description:  string;
-    category:     string;
-    level:        string;
-    location:     string;
+    title: string;
+    description: string;
+    category: string;
+    level: string;
+    location: string;
     availability: string;
   },
   token: string,
@@ -398,25 +398,25 @@ export async function updateSkill(
 // ─── Request Types ────────────────────────────────────────────────────────────
 
 export interface StrapiRequest {
-  id:                    number;
-  requester_name:        string;
-  requester_email:       string;
-  provider_name:         string;
-  provider_email:        string;
-  requested_skill_id:    number;
+  id: number;
+  requester_name: string;
+  requester_email: string;
+  provider_name: string;
+  provider_email: string;
+  requested_skill_id: number;
   requested_skill_title: string;
-  offered_skill_id:      number;
-  offered_skill_title:   string;
-  preferred_slot:        string;
-  mode:                  "Online" | "In-person";
-  message:               string;
-  status:                "pending" | "accepted" | "rejected";
+  offered_skill_id: number;
+  offered_skill_title: string;
+  preferred_slot: string;
+  mode: "Online" | "In-person";
+  message: string;
+  status: "pending" | "accepted" | "rejected";
   accepted_skill_title?: string;
-  createdAt:             string;
+  createdAt: string;
 }
 
 export interface MyRequestsResponse {
-  sent:     StrapiRequest[];
+  sent: StrapiRequest[];
   received: StrapiRequest[];
 }
 
@@ -430,15 +430,15 @@ export async function getMyRequests(token: string): Promise<MyRequestsResponse> 
 // Sends a new skill exchange request.
 export async function createRequest(
   payload: {
-    provider_name:         string;
-    provider_email:        string;
-    requested_skill_id:    number;
+    provider_name: string;
+    provider_email: string;
+    requested_skill_id: number;
     requested_skill_title: string;
-    offered_skill_id:      number;
-    offered_skill_title:   string;
-    preferred_slot:        string;
-    mode:                  "Online" | "In-person";
-    message:               string;
+    offered_skill_id: number;
+    offered_skill_title: string;
+    preferred_slot: string;
+    mode: "Online" | "In-person";
+    message: string;
   },
   token: string
 ): Promise<StrapiRequest> {
@@ -493,20 +493,20 @@ export async function cancelRequest(id: number, token: string): Promise<void> {
 // ─── Exchange Types ───────────────────────────────────────────────────────────
 
 export interface StrapiExchange {
-  id:                   number;
-  exchange_id:          string;
-  requester_name:       string;
-  requester_email:      string;
-  provider_name:        string;
-  provider_email:       string;
-  skill_a_title:        string;  // what requester provides
-  skill_b_title:        string;  // what provider provides
-  preferred_slot:       string;
-  mode:                 "Online" | "In-person";
-  status:               "active" | "completed" | "cancelled";
-  requester_confirmed:  boolean;
-  provider_confirmed:   boolean;
-  createdAt:            string;
+  id: number;
+  exchange_id: string;
+  requester_name: string;
+  requester_email: string;
+  provider_name: string;
+  provider_email: string;
+  skill_a_title: string;  // what requester provides
+  skill_b_title: string;  // what provider provides
+  preferred_slot: string;
+  mode: "Online" | "In-person";
+  status: "active" | "completed" | "cancelled";
+  requester_confirmed: boolean;
+  provider_confirmed: boolean;
+  createdAt: string;
 }
 
 // ─── Exchange API ─────────────────────────────────────────────────────────────
@@ -537,20 +537,20 @@ export async function cancelExchange(id: number, token: string): Promise<StrapiE
 // ─── Review Types ─────────────────────────────────────────────────────────────
 
 export interface StrapiReview {
-  id:             number;
-  exchange_id:    string;
-  reviewer_name:  string;
+  id: number;
+  exchange_id: string;
+  reviewer_name: string;
   reviewer_email: string;
-  reviewee_name:  string;
+  reviewee_name: string;
   reviewee_email: string;
-  skill_title:    string;
-  rating:         number;
-  comment:        string;
-  createdAt:      string;
+  skill_title: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
 }
 
 export interface MyReviewsResponse {
-  given:    StrapiReview[];
+  given: StrapiReview[];
   received: StrapiReview[];
 }
 
@@ -575,17 +575,17 @@ export async function createReview(
 // ─── Report Types ─────────────────────────────────────────────────────────────
 
 export interface StrapiReport {
-  id:             number;
-  type:           "User" | "Skill" | "Exchange";
-  target_id:      string;
-  target_label:   string;
-  reason:         string;
-  description:    string;
-  reporter_name:  string;
+  id: number;
+  type: "User" | "Skill" | "Exchange";
+  target_id: string;
+  target_label: string;
+  reason: string;
+  description: string;
+  reporter_name: string;
   reporter_email: string;
-  report_status:  "pending" | "resolved" | "dismissed";
-  admin_note:     string;
-  createdAt:      string;
+  report_status: "pending" | "resolved" | "dismissed";
+  admin_note: string;
+  createdAt: string;
 }
 
 // ─── Report API ───────────────────────────────────────────────────────────────
@@ -599,11 +599,11 @@ export async function getMyReports(token: string): Promise<StrapiReport[]> {
 
 export async function createReport(
   payload: {
-    type:         "User" | "Skill" | "Exchange";
-    target_id:    string;
+    type: "User" | "Skill" | "Exchange";
+    target_id: string;
     target_label: string;
-    reason:       string;
-    description:  string;
+    reason: string;
+    description: string;
   },
   token: string
 ): Promise<StrapiReport> {
@@ -628,30 +628,31 @@ export async function getAllUsers(token: string): Promise<StrapiUser[]> {
 
 // ─── CMS Content Types ────────────────────────────────────────────────────────
 
-export interface CmsFaqItem      { question: string; answer: string; }
-export interface CmsTeamMember   { name: string; role: string; desc: string; image?: { url: string } | null; }
+export interface CmsFaqItem { question: string; answer: string; }
+export interface CmsTeamMember { name: string; role: string; desc: string; image?: { url: string } | null; }
 export interface CmsProblemBlock { problem: string; solution: string; }
 
 export interface CmsAboutPage {
-  hero_title:       string;
+  hero_title: string;
   hero_description: string;
-  hero_image?:      { url: string } | null;
-  problem_blocks:   CmsProblemBlock[];
-  team_members:     CmsTeamMember[];
+  hero_image?: { url: string } | null;
+  problem_blocks: CmsProblemBlock[];
+  team_members: CmsTeamMember[];
 }
 
 export interface CmsFaqPage {
-  hero_title:      string;
-  hero_description:string;
+  hero_title: string;
+  hero_description: string;
+  hero_image?: { url: string } | null;
   section_heading: string;
-  faqs:            CmsFaqItem[];
+  faqs: CmsFaqItem[];
 }
 
 export interface CmsPoliciesPage {
-  last_updated:         string;
-  privacy_policy:       unknown;   // Strapi blocks JSON
-  terms_of_service:     unknown;
-  exchange_policy:      unknown;
+  last_updated: string;
+  privacy_policy: unknown;   // Strapi blocks JSON
+  terms_of_service: unknown;
+  exchange_policy: unknown;
   community_guidelines: unknown;
 }
 
@@ -689,17 +690,17 @@ export async function getPoliciesPage(): Promise<CmsPoliciesPage | null> {
 }
 
 export interface CmsCategoryCard { title: string; desc: string; image?: { url: string } | null; }
-export interface CmsStepCard     { num: number; title: string; desc: string; }
+export interface CmsStepCard { num: number; title: string; desc: string; }
 
 export interface CmsHomePage {
-  hero_title:     string;
-  hero_subtitle:  string;
+  hero_title: string;
+  hero_subtitle: string;
   hero_cta_label: string;
-  hero_cta_href:  string;
-  hero_image?:    { url: string } | null;
-  categories:     CmsCategoryCard[];
-  steps:          CmsStepCard[];
-  team_members:   CmsTeamMember[];
+  hero_cta_href: string;
+  hero_image?: { url: string } | null;
+  categories: CmsCategoryCard[];
+  steps: CmsStepCard[];
+  team_members: CmsTeamMember[];
 }
 
 export async function getHomePage(): Promise<CmsHomePage | null> {
@@ -713,10 +714,10 @@ export async function getHomePage(): Promise<CmsHomePage | null> {
 // ─── Skill Category ───────────────────────────────────────────────────────────
 
 export interface StrapiSkillCategory {
-  id:          number;
-  name:        string;
+  id: number;
+  name: string;
   description: string;
-  image?:      { url: string } | null;
+  image?: { url: string } | null;
 }
 
 // Fetch all skill categories — used in add/edit skill form and browse filter.

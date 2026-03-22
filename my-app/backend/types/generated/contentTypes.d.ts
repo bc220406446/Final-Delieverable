@@ -560,6 +560,7 @@ export interface ApiFaqPageFaqPage extends Struct.SingleTypeSchema {
       Schema.Attribute.Private;
     faqs: Schema.Attribute.Component<'content.faq-item', true>;
     hero_description: Schema.Attribute.Text;
+    hero_image: Schema.Attribute.Media<'images'>;
     hero_title: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
