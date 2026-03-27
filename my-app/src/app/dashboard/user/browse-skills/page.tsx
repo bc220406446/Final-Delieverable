@@ -3,7 +3,10 @@
 
 import { useMemo, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { getApprovedSkills, getSkillCategories, resolveSkillCategory, StrapiSkill, StrapiSkillCategory } from "@/lib/api";
+import {
+  getApprovedSkills, getSkillCategories, getMyRequests, getMyExchanges,
+  resolveSkillCategory, StrapiSkill, StrapiSkillCategory
+} from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import SendRequestModal, { SkillForRequest } from "@/app/components/dashboard/user/request/SendRequestModal";
 
@@ -49,6 +52,18 @@ function resolveImage(skill: StrapiSkill): string | null {
   return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
 }
 
+function getRequestButtonState(
+  skillId: number,
+  justSent: Record<number, boolean>,
+  pendingSkillIds: Set<number>,
+  acceptedSkillIds: Set<number>,
+): { label: string; disabled: boolean } {
+  if (justSent[skillId])             return { label: "Request Sent",     disabled: true };
+  if (pendingSkillIds.has(skillId))  return { label: "Request Pending",  disabled: true };
+  if (acceptedSkillIds.has(skillId)) return { label: "Exchange Ongoing", disabled: true };
+  return                                    { label: "Send Request",      disabled: false };
+}
+
 export default function BrowseSkillsPage() {
   const { token, user } = useAuth();
 
@@ -57,26 +72,62 @@ export default function BrowseSkillsPage() {
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState<string | null>(null);
 
-  const [category,   setCategory]   = useState("");
-  const [city,       setCity]       = useState("");
-  const [level,      setLevel]      = useState("");
-  const [q,          setQ]          = useState("");
+  const [category, setCategory] = useState("");
+  const [city,     setCity]     = useState("");
+  const [level,    setLevel]    = useState("");
+  const [q,        setQ]        = useState("");
 
   const [activeSkill, setActiveSkill] = useState<StrapiSkill | null>(null);
   const [sent,        setSent]        = useState<Record<number, boolean>>({});
 
-  const fetchSkills = useCallback(async () => {
+  const [pendingSkillIds,  setPendingSkillIds]  = useState<Set<number>>(new Set());
+  const [acceptedSkillIds, setAcceptedSkillIds] = useState<Set<number>>(new Set());
+
+  const fetchAll = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     setError(null);
     try {
-      const [data, cats] = await Promise.all([
+      const [data, cats, { sent: sentRequests }, myExchanges] = await Promise.all([
         getApprovedSkills(token),
         getSkillCategories(token),
+        getMyRequests(token),
+        getMyExchanges(token),
       ]);
-      // Exclude own skills
+
       setSkills(data.filter((s) => s.provider_email?.toLowerCase() !== user?.email?.toLowerCase()));
       setCategories(cats);
+
+      // Build fingerprint keys for active exchanges only.
+      // key = "provider_email|skill_title" — matches what a sent request knows about.
+      // From requester's view: they requested skill_b from provider_email.
+      // From provider's view:  they requested skill_a from requester_email.
+      const activeExchangeKeys = new Set<string>();
+      for (const e of myExchanges) {
+        if (e.status !== "active") continue;
+        activeExchangeKeys.add(`${e.provider_email.toLowerCase()}|${e.skill_b_title.toLowerCase()}`);
+        activeExchangeKeys.add(`${e.requester_email.toLowerCase()}|${e.skill_a_title.toLowerCase()}`);
+      }
+
+      const pending  = new Set<number>();
+      const accepted = new Set<number>();
+      for (const r of sentRequests) {
+        if (r.status === "pending") {
+          pending.add(r.requested_skill_id);
+        }
+        if (r.status === "accepted") {
+          // Only block if the resulting exchange is still active —
+          // completed or cancelled exchanges allow re-requesting.
+          const key = `${r.provider_email.toLowerCase()}|${r.requested_skill_title.toLowerCase()}`;
+          if (activeExchangeKeys.has(key)) {
+            accepted.add(r.requested_skill_id);
+          }
+        }
+      }
+
+      setPendingSkillIds(pending);
+      setAcceptedSkillIds(accepted);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load skills.");
     } finally {
@@ -84,19 +135,16 @@ export default function BrowseSkillsPage() {
     }
   }, [token, user?.email]);
 
-  useEffect(() => { fetchSkills(); }, [fetchSkills]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
     return skills.filter((s) => {
-      // category filter: match skill's stored category name against selected category name
-      const selectedCat = categories.find((c) => String(c.id) === category);
-      const matchCategory = category
-        ? resolveSkillCategory(s) === selectedCat?.name
-        : true;
-      const matchCity  = city  ? s.location === city  : true;
-      const matchLevel = level ? s.level    === level  : true;
-      const matchQuery = query
+      const selectedCat   = categories.find((c) => String(c.id) === category);
+      const matchCategory = category ? resolveSkillCategory(s) === selectedCat?.name : true;
+      const matchCity     = city    ? s.location === city  : true;
+      const matchLevel    = level   ? s.level    === level : true;
+      const matchQuery    = query
         ? s.title.toLowerCase().includes(query)         ||
           s.provider_name.toLowerCase().includes(query) ||
           s.provider_email.toLowerCase().includes(query)
@@ -106,7 +154,10 @@ export default function BrowseSkillsPage() {
   }, [skills, categories, category, city, level, q]);
 
   function handleSent() {
-    if (activeSkill) setSent((prev) => ({ ...prev, [activeSkill.id]: true }));
+    if (activeSkill) {
+      setSent((prev) => ({ ...prev, [activeSkill.id]: true }));
+      setPendingSkillIds((prev) => new Set(prev).add(activeSkill.id));
+    }
     setActiveSkill(null);
   }
 
@@ -129,7 +180,6 @@ export default function BrowseSkillsPage() {
       <section className="mt-6 bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
 
-          {/* Category — loaded from Strapi */}
           <div className="min-w-0">
             <FilterLabel>Category</FilterLabel>
             <select className={inputCls()} value={category} onChange={(e) => setCategory(e.target.value)}>
@@ -188,8 +238,11 @@ export default function BrowseSkillsPage() {
             No skills match your filters.
           </div>
         ) : filtered.map((skill) => {
-          const isSent   = !!sent[skill.id];
+          const { label, disabled } = getRequestButtonState(
+            skill.id, sent, pendingSkillIds, acceptedSkillIds,
+          );
           const imageUrl = resolveImage(skill);
+
           return (
             <div key={skill.id} className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5">
               <div className="flex flex-col md:flex-row gap-4">
@@ -207,24 +260,24 @@ export default function BrowseSkillsPage() {
                   <p className="mt-1.5 text-sm text-gray-600 leading-relaxed">{skill.description}</p>
 
                   <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <Pill label="Offered By"   value={skill.provider_name}  />
-                    <Pill label="Email"        value={skill.provider_email} />
-                    <Pill label="Category"     value={resolveSkillCategory(skill)} />
-                    <Pill label="Level"        value={skill.level}          />
-                    <Pill label="Location / Mode"     value={skill.location}       />
-                    <Pill label="Availability" value={skill.availability}   />
+                    <Pill label="Offered By"     value={skill.provider_name}         />
+                    <Pill label="Email"           value={skill.provider_email}        />
+                    <Pill label="Category"        value={resolveSkillCategory(skill)} />
+                    <Pill label="Level"           value={skill.level}                 />
+                    <Pill label="Location / Mode" value={skill.location}              />
+                    <Pill label="Availability"    value={skill.availability}          />
                   </div>
 
                   <div className="mt-4">
                     <button type="button"
-                      onClick={() => setActiveSkill(skill)}
-                      disabled={isSent}
+                      onClick={() => !disabled && setActiveSkill(skill)}
+                      disabled={disabled}
                       className={`inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                        isSent
+                        disabled
                           ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
                           : "bg-green-600 text-white hover:bg-green-700"
                       }`}>
-                      {isSent ? "Request Sent" : "Send Request"}
+                      {label}
                     </button>
                   </div>
                 </div>
