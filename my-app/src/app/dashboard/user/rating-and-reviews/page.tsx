@@ -35,16 +35,16 @@ function Td({ children, className = "" }: { children: React.ReactNode; className
   return <td className={`px-5 py-4 text-sm text-gray-600 align-top ${className}`}>{children}</td>;
 }
 
-function PersonBadge({ name, tab }: { name: string; tab: ReviewTab }): JSX.Element {
-  const cls = tab === "received"
-    ? "bg-blue-100 text-blue-700 border-blue-200"
-    : "bg-purple-100 text-purple-700 border-purple-200";
-  return (
-    <span className={`inline-flex items-center border text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>
-      {name}
-    </span>
-  );
-}
+// function PersonBadge({ name, tab }: { name: string; tab: ReviewTab }): JSX.Element {
+//   const cls = tab === "received"
+//     ? "bg-blue-100 text-blue-700 border-blue-200"
+//     : "bg-purple-100 text-purple-700 border-purple-200";
+//   return (
+//     <span className={`inline-flex items-center border text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>
+//       {name}
+//     </span>
+//   );
+// }
 
 function ReviewTable({ reviews, tab }: { reviews: StrapiReview[]; tab: ReviewTab }): JSX.Element {
   const colLabel   = tab === "received" ? "From"  : "To";
@@ -68,10 +68,10 @@ function ReviewTable({ reviews, tab }: { reviews: StrapiReview[]; tab: ReviewTab
               <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-gray-400">No reviews found.</td></tr>
             ) : reviews.map((r) => (
               <tr key={r.id} className="hover:bg-gray-50 transition">
-                <Td className="font-semibold text-gray-900 whitespace-nowrap">{r.skill_title}</Td>
-                <Td><PersonBadge name={personName(r)} tab={tab} /></Td>
+                <Td className="font-semibold text-gray-900 line-clamp-3">{r.skill_title}</Td>
+                <Td><span className="font-medium text-gray-900">{personName(r)}</span></Td>
                 <Td><Stars rating={r.rating} /></Td>
-                <Td className="max-w-xs text-gray-500"><span className="line-clamp-2">{r.comment}</span></Td>
+                <Td className="max-w-xs text-gray-500"><span className="line-clamp-3">{r.comment}</span></Td>
               </tr>
             ))}
           </tbody>
@@ -84,10 +84,10 @@ function ReviewTable({ reviews, tab }: { reviews: StrapiReview[]; tab: ReviewTab
           <div className="py-10 text-center text-sm text-gray-400">No reviews found.</div>
         ) : reviews.map((r) => (
           <div key={r.id} className="p-4 flex flex-col gap-1.5">
-            <div className="font-bold text-gray-900 text-sm">{r.skill_title}</div>
-            <PersonBadge name={`${colLabel}: ${personName(r)}`} tab={tab} />
+            <div className="font-bold text-gray-900 text-sm line-clamp-3">{r.skill_title}</div>
+            <div className="font-medium text-gray-900">{`${colLabel}: ${personName(r)}`}</div>
             <Stars rating={r.rating} />
-            <div className="text-xs text-gray-500 line-clamp-2">{r.comment}</div>
+            <div className="text-xs text-gray-500 line-clamp-3">{r.comment}</div>
           </div>
         ))}
       </div>
