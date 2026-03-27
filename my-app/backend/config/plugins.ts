@@ -12,7 +12,6 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
           user: env('GMAIL_USER'),
           pass: env('GMAIL_APP_PASSWORD'),
         },
-        tls: { rejectUnauthorized: false },
       },
       settings: {
         defaultFrom:    env('GMAIL_USER'),

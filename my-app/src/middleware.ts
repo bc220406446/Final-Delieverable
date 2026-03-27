@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Routes that require authentication
 const PROTECTED_PREFIXES = [
   "/dashboard/user",
+  "/dashboard/admin",
 ];
 
 // Routes only accessible when NOT logged in (redirect logged-in users away)
@@ -58,7 +59,7 @@ export const config = {
     "/dashboard/:path*",
     "/login",
     "/register",
-      "/forgot-password",
+    "/forgot-password",
     "/reset-password",
     "/confirm-email",
     "/logout",

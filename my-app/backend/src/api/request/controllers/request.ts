@@ -93,7 +93,17 @@ export default factories.createCoreController('api::request.request', () => ({
     if (req.requester_email !== user.email) return ctx.forbidden('Not your request to edit.');
     if (req.status !== 'pending') return ctx.badRequest('Only pending requests can be edited.');
     const body = ctx.request.body?.data ?? ctx.request.body;
-    const updated = await es().update('api::request.request', id, { data: body });
+
+    // Whitelist the fields a requester is permitted to change on their pending request.
+    const ALLOWED_UPDATE_FIELDS = ['preferred_slot', 'mode', 'message', 'offered_skill_title', 'offered_skill_id'] as const;
+    const safeBody: Record<string, unknown> = {};
+    for (const field of ALLOWED_UPDATE_FIELDS) {
+      if (Object.hasOwn(body, field)) {
+        safeBody[field] = body[field];
+      }
+    }
+
+    const updated = await es().update('api::request.request', id, { data: safeBody });
     return ctx.send({ data: updated });
   },
 

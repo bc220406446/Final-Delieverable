@@ -52,6 +52,10 @@ export default factories.createCoreController('api::report.report', () => ({
   // PATCH /api/reports/:id/resolve
   // Admin resolves: takes action on the reported content then marks resolved.
   async resolve(ctx: any) {
+    const user = ctx.state.user;
+    if (!user) return ctx.unauthorized('You must be logged in.');
+    if (user.role?.type !== 'admin') return ctx.forbidden('Admin access required.');
+
     const { id } = ctx.params;
     const body   = ctx.request.body?.data ?? ctx.request.body ?? {};
 
@@ -126,6 +130,10 @@ export default factories.createCoreController('api::report.report', () => ({
 
   // PATCH /api/reports/:id/dismiss
   async dismiss(ctx: any) {
+    const user = ctx.state.user;
+    if (!user) return ctx.unauthorized('You must be logged in.');
+    if (user.role?.type !== 'admin') return ctx.forbidden('Admin access required.');
+
     const { id }   = ctx.params;
     const body     = ctx.request.body?.data ?? ctx.request.body ?? {};
     const report   = await es().findOne('api::report.report', id);

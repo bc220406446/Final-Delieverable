@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   res.cookies.set(COOKIE_NAME, token, {
     path:     "/",
     sameSite: "lax",
-    httpOnly: false,
+    httpOnly: true,
     secure:   process.env.NODE_ENV === "production",
     ...(maxAge ? { maxAge } : {}),
   });
@@ -25,7 +25,7 @@ export async function DELETE() {
   res.cookies.set(COOKIE_NAME, "", {
     path:     "/",
     sameSite: "lax",
-    httpOnly: false,
+    httpOnly: true,
     maxAge:   0,
   });
   return res;
