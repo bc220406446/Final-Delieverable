@@ -59,7 +59,7 @@ export default function SkillFormFields({ form, errors, categories, onChange }: 
                 src={form.imagePreview}
                 alt="Skill preview"
                 fill
-                className="object-cover"
+                className="object-fill"
                 unoptimized
               />
             ) : (
@@ -151,14 +151,14 @@ export default function SkillFormFields({ form, errors, categories, onChange }: 
 
       {/* Location */}
       <div>
-        <FieldLabel htmlFor="m-loc">Location</FieldLabel>
+        <FieldLabel htmlFor="m-loc">Location / Mode</FieldLabel>
         <select
           id="m-loc"
           className={inputCls()}
           value={form.city}
           onChange={(e) => onChange("city", e.target.value)}
         >
-          <option value="">Select city…</option>
+          <option value="">Select city / mode ...</option>
           {CITIES.map((city) => (
             <option key={city} value={city}>{city}</option>
           ))}

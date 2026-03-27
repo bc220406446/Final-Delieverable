@@ -36,7 +36,7 @@ function Pill({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
       <span className="font-semibold text-gray-700">{label}:</span>{" "}
-      <span className="break-words text-gray-600">{value || "—"}</span>
+      <span className="wrap-break-word text-gray-600">{value || "—"}</span>
     </div>
   );
 }

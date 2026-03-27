@@ -29,7 +29,7 @@ function Pill({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800 flex items-start gap-1.5">
       <span className="font-semibold text-gray-700 shrink-0 whitespace-nowrap">{label}:</span>
-      <span className="text-gray-600 break-words">{value || "—"}</span>
+      <span className="text-gray-600 wrap-break-word">{value || "—"}</span>
     </div>
   );
 }
@@ -39,7 +39,7 @@ function FullPill({ label, value }: { label: string; value: string }): JSX.Eleme
   return (
     <div className="col-span-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-xs text-gray-800 flex items-start gap-1.5">
       <span className="font-semibold text-green-700 shrink-0 whitespace-nowrap">{label}:</span>
-      <span className="text-gray-700 break-words font-medium">{value || "—"}</span>
+      <span className="text-gray-700 wrap-break-word font-medium">{value || "—"}</span>
     </div>
   );
 }
@@ -111,7 +111,13 @@ export default function RequestsPage(): JSX.Element {
     if (!token) return;
     setActionId(id);
     try {
-      await updateRequest(id, { preferred_slot: draft.preferred_slot, mode: draft.mode, message: draft.message }, token);
+      await updateRequest(id, { 
+        offered_skill_id:    draft.offered_skill_id,
+        offered_skill_title: draft.offered_skill_title,
+        preferred_slot:      draft.preferred_slot,
+        mode:                draft.mode,
+        message:             draft.message, 
+      }, token);
       setSent((prev) => prev.map((r) => r.id === id ? {
         ...r,
         offered_skill_id:    draft.offered_skill_id,

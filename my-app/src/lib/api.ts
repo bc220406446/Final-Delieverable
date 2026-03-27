@@ -480,7 +480,13 @@ export async function createRequest(
 // Updates a pending request (requester edits their own request).
 export async function updateRequest(
   id: number,
-  payload: { preferred_slot: string; mode: "Online" | "In-person"; message: string },
+  payload: {
+    offered_skill_id:    number;
+    offered_skill_title: string;
+    preferred_slot:      string;
+    mode:                "Online" | "In-person";
+    message:             string;
+  },
   token: string
 ): Promise<StrapiRequest> {
   const res = await strapiRequest<{ data: StrapiRequest }>(
@@ -495,21 +501,40 @@ export async function updateRequest(
 export async function acceptRequest(
   id: number,
   token: string,
-  acceptedSkillTitle?: string
+  acceptedSkillTitle?: string,
+  responseMessage?: string,
+  updatedSlot?: string
 ): Promise<void> {
   await strapiRequest(
     `/api/requests/${id}/accept`,
     {
       method: "PATCH",
-      body: JSON.stringify({ data: { accepted_skill_title: acceptedSkillTitle ?? "" } }),
+      body: JSON.stringify({
+        data: {
+          accepted_skill_title: acceptedSkillTitle ?? "",
+          response_message:     responseMessage   ?? "",
+          updated_slot:         updatedSlot        ?? "",
+        },
+      }),
     },
     token
   );
 }
 
-// Provider rejects a received request.
-export async function rejectRequest(id: number, token: string): Promise<void> {
-  await strapiRequest(`/api/requests/${id}/reject`, { method: "PATCH" }, token);
+// Provider rejects a received request with optional reason.
+export async function rejectRequest(
+  id: number,
+  token: string,
+  rejectionReason?: string
+): Promise<void> {
+  await strapiRequest(
+    `/api/requests/${id}/reject`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ data: { rejection_reason: rejectionReason ?? "" } }),
+    },
+    token
+  );
 }
 
 // Requester cancels their own pending request.
@@ -533,6 +558,12 @@ export interface StrapiExchange {
   status:               "active" | "completed" | "cancelled";
   requester_confirmed:  boolean;
   provider_confirmed:   boolean;
+  provider_delivered:   boolean;
+  requester_received:   boolean;
+  skill_a_delivered:    boolean;
+  skill_a_received:     boolean;
+  skill_b_delivered:    boolean;
+  skill_b_received:     boolean;
   createdAt:            string;
 }
 
@@ -546,9 +577,18 @@ export async function getMyExchanges(token: string): Promise<StrapiExchange[]> {
 }
 
 // User marks their side as done.
-export async function confirmExchange(id: number, token: string): Promise<StrapiExchange> {
+export async function confirmExchange(
+  id: number,
+  token: string,
+  action: "deliver" | "receive"
+): Promise<StrapiExchange> {
   const res = await strapiRequest<{ data: StrapiExchange }>(
-    `/api/exchanges/${id}/confirm`, { method: "PATCH" }, token
+    `/api/exchanges/${id}/confirm`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ data: { action } }),  // ← send action in body
+    },
+    token
   );
   return res.data;
 }
@@ -748,4 +788,26 @@ export async function getSkillCategories(token: string): Promise<StrapiSkillCate
     token
   );
   return res.data ?? [];
+}
+
+// ─── Default Avatar ───────────────────────────────────────────────────────────
+
+// Fetches the default profile image URL from Strapi media library.
+// Looks for a file named "noProfileImage.png" uploaded to Strapi.
+// Returns the absolute URL or null if not found.
+export async function getDefaultAvatarUrl(): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `${STRAPI_URL}/api/upload/files?filters[name][$contains]=noProfileImage`,
+      { cache: "force-cache" }  // cache aggressively — this never changes
+    );
+    if (!res.ok) return null;
+    const files = await res.json();
+    // files is a plain array from Strapi upload plugin
+    const file = Array.isArray(files) ? files[0] : files?.data?.[0];
+    if (!file?.url) return null;
+    return file.url.startsWith("http") ? file.url : `${STRAPI_URL}${file.url}`;
+  } catch {
+    return null;
+  }
 }

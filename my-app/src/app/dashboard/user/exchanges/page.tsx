@@ -1,4 +1,3 @@
-// Exchanges page — fetches real exchanges from Strapi.
 "use client";
 
 import { useMemo, useState, useEffect, useCallback, JSX } from "react";
@@ -6,13 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { getMyExchanges, confirmExchange, cancelExchange, StrapiExchange } from "@/lib/api";
 
-type ExchangeTab = "active" | "completed" | "cancelled";
-
-const TABS: { key: ExchangeTab; label: string }[] = [
-  { key: "active",    label: "Active"    },
-  { key: "completed", label: "Completed" },
-  { key: "cancelled", label: "Cancelled" },
-];
+type Tab = "active" | "completed" | "cancelled";
+type PillType = "pending" | "awaiting_confirmation" | "confirm_delivery" | "confirmed";
 
 function Row({ label, value }: { label: string; value: string }): JSX.Element {
   return (
@@ -23,115 +17,71 @@ function Row({ label, value }: { label: string; value: string }): JSX.Element {
   );
 }
 
-function ModePill({ mode }: { mode: "Online" | "In-person" }): JSX.Element {
+function ModePill({ mode }: { mode: string }): JSX.Element {
   return (
     <span className={`inline-flex items-center border text-xs font-semibold px-2 py-0.5 rounded-full ${
-      mode === "Online"
-        ? "bg-blue-100 text-blue-700 border-blue-200"
-        : "bg-orange-100 text-orange-700 border-orange-200"
+      mode === "Online" ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-orange-100 text-orange-700 border-orange-200"
     }`}>{mode}</span>
   );
 }
 
-function SkillCard({
-  heading, subheading, skillTitle, slot, mode, confirmed, otherConfirmed,
-  isActive, onConfirm, confirming,
-}: {
-  heading: string; subheading: string; skillTitle: string;
-  slot: string; mode: "Online" | "In-person";
-  confirmed: boolean; otherConfirmed: boolean;
-  isActive: boolean; onConfirm: () => void; confirming: boolean;
-}): JSX.Element {
+function StatusPill({ type }: { type: PillType }): JSX.Element {
+  const cfg: Record<PillType, { label: string; cls: string }> = {
+    pending:               { label: "Pending",               cls: "bg-gray-100  text-gray-500  border-gray-200"  },
+    awaiting_confirmation: { label: "Awaiting Confirmation", cls: "bg-amber-100 text-amber-700 border-amber-200" },
+    confirm_delivery:      { label: "Confirm Delivery",      cls: "bg-blue-100  text-blue-700  border-blue-200"  },
+    confirmed:             { label: "Confirmed",             cls: "bg-green-100 text-green-700 border-green-200" },
+  };
+  const { label, cls } = cfg[type];
   return (
-    <div className={`rounded-xl border p-3.5 transition ${
-      confirmed ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-100"
-    }`}>
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <p className="text-[11px] font-extrabold tracking-wide uppercase text-gray-500">
-          {heading}
-          <span className="ml-1 normal-case font-semibold text-gray-400">{subheading}</span>
-        </p>
-        {confirmed ? (
-          <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 border border-green-200 px-2 py-0.5 rounded-full">
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            Confirmed
-          </span>
-        ) : otherConfirmed ? (
-          <span className="shrink-0 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-            Awaiting you
-          </span>
-        ) : null}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Row label="Skill" value={skillTitle} />
-        <Row label="Scheduled Slot" value={slot} />
-        <div className="flex gap-2 text-sm items-center">
-          <span className="font-semibold text-gray-700 w-36 shrink-0">Mode:</span>
-          <ModePill mode={mode} />
-        </div>
-      </div>
-
-      {isActive && !confirmed && (
-        <button
-          type="button"
-          onClick={onConfirm}
-          disabled={confirming}
-          className="mt-3 w-full text-sm rounded-lg px-3 py-2 font-semibold text-white bg-green-600 hover:bg-green-700 transition disabled:opacity-60"
-        >
-          {confirming ? "Confirming…" : "✓ Mark as Done"}
-        </button>
+    <span className={`inline-flex items-center gap-1 border text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>
+      {type === "confirmed" && (
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
       )}
-    </div>
+      {label}
+    </span>
   );
 }
 
 export default function ExchangesPage(): JSX.Element {
   const { token, user } = useAuth();
 
-  const [exchanges,    setExchanges]    = useState<StrapiExchange[]>([]);
-  const [loading,      setLoading]      = useState(true);
-  const [error,        setError]        = useState<string | null>(null);
-  const [tab,          setTab]          = useState<ExchangeTab>("active");
-  const [confirmingId, setConfirmingId] = useState<number | null>(null);
+  const [exchanges,       setExchanges]       = useState<StrapiExchange[]>([]);
+  const [loading,         setLoading]         = useState(true);
+  const [error,           setError]           = useState<string | null>(null);
+  const [tab,             setTab]             = useState<Tab>("active");
+  const [actionKey,       setActionKey]       = useState<string | null>(null);
   const [cancelConfirmId, setCancelConfirmId] = useState<number | null>(null);
 
   const fetchExchanges = useCallback(async () => {
     if (!token) return;
     setLoading(true); setError(null);
-    try {
-      const data = await getMyExchanges(token);
-      setExchanges(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load exchanges.");
-    } finally { setLoading(false); }
+    try { setExchanges(await getMyExchanges(token)); }
+    catch (err) { setError(err instanceof Error ? err.message : "Failed to load exchanges."); }
+    finally { setLoading(false); }
   }, [token]);
 
   useEffect(() => { fetchExchanges(); }, [fetchExchanges]);
 
-  const filtered = useMemo(
-    () => exchanges.filter((x) => x.status === tab),
-    [exchanges, tab]
-  );
-
-  const counts = useMemo(() => ({
+  const filtered = useMemo(() => exchanges.filter((x) => x.status === tab), [exchanges, tab]);
+  const counts   = useMemo(() => ({
     active:    exchanges.filter((x) => x.status === "active").length,
     completed: exchanges.filter((x) => x.status === "completed").length,
     cancelled: exchanges.filter((x) => x.status === "cancelled").length,
   }), [exchanges]);
 
-  async function handleConfirm(id: number) {
+  async function handleAction(id: number, action: "deliver" | "receive") {
     if (!token) return;
-    setConfirmingId(id);
+    const key = `${id}-${action}`;
+    setActionKey(key);
     try {
-      const updated = await confirmExchange(id, token);
+      const updated = await confirmExchange(id, token, action);
       setExchanges((prev) => prev.map((x) => x.id === id ? { ...x, ...updated } : x));
-      // If just completed, switch tab
-      if (updated.status === "completed") setTimeout(() => setTab("completed"), 400);
+      if (updated.status === "completed") setTimeout(() => setTab("completed"), 500);
     } catch (err) { alert(err instanceof Error ? err.message : "Failed."); }
-    finally { setConfirmingId(null); }
+    finally { setActionKey(null); }
   }
 
   async function handleCancel(id: number) {
@@ -144,40 +94,21 @@ export default function ExchangesPage(): JSX.Element {
     } catch (err) { alert(err instanceof Error ? err.message : "Failed."); }
   }
 
-  // Determine skill perspective based on whether viewer is requester or provider
-  function getPerspective(x: StrapiExchange) {
-    const isRequester = x.requester_email === user?.email;
-    return {
-      // What I provide
-      mySkill:           isRequester ? x.skill_a_title       : x.skill_b_title,
-      myConfirmed:       isRequester ? x.requester_confirmed  : x.provider_confirmed,
-      // What I receive
-      theirSkill:        isRequester ? x.skill_b_title       : x.skill_a_title,
-      theirConfirmed:    isRequester ? x.provider_confirmed   : x.requester_confirmed,
-      // Partner info
-      partnerName:       isRequester ? x.provider_name       : x.requester_name,
-      partnerEmail:      isRequester ? x.provider_email      : x.requester_email,
-    };
-  }
-
   return (
     <div>
       <h1 className="text-2xl md:text-3xl font-extrabold text-green-900">Exchanges</h1>
-      <p className="mt-2 text-sm text-gray-600">
-        Track your active, completed, and cancelled skill exchanges.
-      </p>
+      <p className="mt-2 text-sm text-gray-600">Track your active, completed, and cancelled skill exchanges.</p>
 
       <section className="mt-6 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-
         {/* Tabs */}
         <div className="flex flex-wrap gap-2 border-b border-gray-100 p-3">
-          {TABS.map(({ key, label }) => (
+          {(["active","completed","cancelled"] as Tab[]).map((key) => (
             <button key={key} type="button"
               onClick={() => { setTab(key); setCancelConfirmId(null); }}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
+              className={`px-4 py-2 rounded-xl text-sm font-semibold capitalize transition ${
                 tab === key ? "bg-green-600 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"
               }`}>
-              {label}
+              {key}
               <span className={`ml-2 text-xs font-bold px-1.5 py-0.5 rounded-full ${
                 tab === key ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
               }`}>{counts[key]}</span>
@@ -191,11 +122,67 @@ export default function ExchangesPage(): JSX.Element {
           ) : error ? (
             <div className="py-10 text-center text-sm text-red-500">{error}</div>
           ) : filtered.length === 0 ? (
-            <div className="py-10 text-center text-sm text-gray-400">
-              {tab === "active" ? "No active exchanges." : tab === "completed" ? "No completed exchanges yet." : "No cancelled exchanges."}
-            </div>
+            <div className="py-10 text-center text-sm text-gray-400">No {tab} exchanges.</div>
           ) : filtered.map((x) => {
-            const { mySkill, myConfirmed, theirSkill, theirConfirmed, partnerName, partnerEmail } = getPerspective(x);
+
+            // ── Who am I? ────────────────────────────────────────────────────
+            // Requester = User A  (provides skill_a, receives skill_b)
+            // Provider  = User B  (provides skill_b, receives skill_a)
+            const isRequester = x.requester_email === user?.email;
+            const isProvider  = x.provider_email  === user?.email;
+            const isActive    = tab === "active";
+
+            // ── Read the 4 symmetric flags ───────────────────────────────────
+            const aDelivered = x.skill_a_delivered === true;  // User A delivered skill_a
+            const aReceived  = x.skill_a_received  === true;  // User B confirmed receipt of skill_a
+            const bDelivered = x.skill_b_delivered === true;  // User B delivered skill_b
+            const bReceived  = x.skill_b_received  === true;  // User A confirmed receipt of skill_b
+
+            // ── My skill and their skill ─────────────────────────────────────
+            // Requester (A): provides skill_a, receives skill_b
+            // Provider  (B): provides skill_b, receives skill_a
+            const mySkill      = isRequester ? x.skill_a_title  : x.skill_b_title;
+            const theirSkill   = isRequester ? x.skill_b_title  : x.skill_a_title;
+            const partnerName  = isRequester ? x.provider_name  : x.requester_name;
+            const partnerEmail = isRequester ? x.provider_email : x.requester_email;
+
+            // ── My delivering flag / my receiving flag ───────────────────────
+            // Did I deliver my skill?
+            const iDelivered  = isRequester ? aDelivered : bDelivered;
+            // Did the other person confirm they received my skill?
+            const myDeliveryConfirmed = isRequester ? aReceived : bReceived;
+            // Did the other person deliver their skill to me?
+            const theyDelivered = isRequester ? bDelivered : aDelivered;
+            // Have I confirmed receiving their skill?
+            const iReceived   = isRequester ? bReceived : aReceived;
+
+            // ── Status pills ─────────────────────────────────────────────────
+            //
+            // PROVIDING CARD (my skill, I deliver it):
+            //   pending               → I haven't delivered yet
+            //   awaiting_confirmation → I delivered, waiting for them to confirm
+            //   confirmed             → They confirmed receipt
+            //
+            const providingPill: PillType =
+              myDeliveryConfirmed ? "confirmed" :
+              iDelivered          ? "awaiting_confirmation" :
+              "pending";
+
+            //
+            // RECEIVING CARD (their skill, they deliver to me):
+            //   pending          → They haven't delivered yet
+            //   confirm_delivery → They delivered, I need to confirm
+            //   confirmed        → I confirmed receipt
+            //
+            const receivingPill: PillType =
+              iReceived    ? "confirmed" :
+              theyDelivered ? "confirm_delivery" :
+              "pending";
+
+            // ── Action keys for loading state ───────────────────────────────
+            const deliveringKey = `${x.id}-deliver`;
+            const receivingKey  = `${x.id}-receive`;
+
             return (
               <div key={x.id} className="border border-gray-200 rounded-2xl p-4 md:p-5 bg-white">
 
@@ -213,56 +200,97 @@ export default function ExchangesPage(): JSX.Element {
 
                 <div className="border-t border-gray-100 my-3" />
 
-                {/* Skill cards */}
-                {tab === "active" ? (
-                  <>
-                    <p className="text-xs text-gray-500 mb-3">
-                      Mark your side done once you've delivered your skill. Exchange completes when both sides confirm.
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <SkillCard
-                        heading="Skill Providing" subheading="(You provide)"
-                        skillTitle={mySkill} slot={x.preferred_slot} mode={x.mode}
-                        confirmed={myConfirmed} otherConfirmed={theirConfirmed}
-                        isActive onConfirm={() => handleConfirm(x.id)}
-                        confirming={confirmingId === x.id}
-                      />
-                      <SkillCard
-                        heading="Skill Receiving" subheading="(You receive)"
-                        skillTitle={theirSkill} slot={x.preferred_slot} mode={x.mode}
-                        confirmed={theirConfirmed} otherConfirmed={myConfirmed}
-                        isActive={false} onConfirm={() => {}} confirming={false}
-                      />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                  {/* ── SKILL PROVIDING CARD ── */}
+                  <div className={`rounded-xl border p-3.5 transition ${
+                    providingPill === "confirmed"             ? "bg-green-50 border-green-200"
+                    : providingPill === "awaiting_confirmation" ? "bg-amber-50 border-amber-200"
+                    : "bg-gray-50 border-gray-100"
+                  }`}>
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <p className="text-[11px] font-extrabold tracking-wide uppercase text-gray-500">
+                        Skill Providing
+                        <span className="ml-1 normal-case font-semibold text-gray-400">(You provide)</span>
+                      </p>
+                      <StatusPill type={providingPill} />
                     </div>
-                  </>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      { heading: "Skill Providing", subheading: "(You provide)", skill: mySkill    },
-                      { heading: "Skill Receiving", subheading: "(You receive)", skill: theirSkill },
-                    ].map(({ heading, subheading, skill }) => (
-                      <div key={heading} className="bg-gray-50 border border-gray-100 rounded-xl p-3.5">
-                        <p className="text-[11px] font-extrabold tracking-wide uppercase text-gray-500 mb-3">
-                          {heading}<span className="ml-1 normal-case font-semibold text-gray-400">{subheading}</span>
-                        </p>
-                        <div className="flex flex-col gap-2">
-                          <Row label="Skill"          value={skill}          />
-                          <Row label="Scheduled Slot" value={x.preferred_slot} />
-                          <div className="flex gap-2 text-sm items-center">
-                            <span className="font-semibold text-gray-700 w-36 shrink-0">Mode:</span>
-                            <ModePill mode={x.mode} />
-                          </div>
-                        </div>
+                    <div className="flex flex-col gap-2 mb-3">
+                      <Row label="Skill"          value={mySkill}          />
+                      <Row label="Scheduled Slot" value={x.preferred_slot} />
+                      <div className="flex gap-2 text-sm items-center">
+                        <span className="font-semibold text-gray-700 w-36 shrink-0">Mode:</span>
+                        <ModePill mode={x.mode} />
                       </div>
-                    ))}
+                    </div>
+
+                    {/* Not yet delivered → active green button */}
+                    {isActive && !iDelivered && (
+                      <button type="button"
+                        onClick={() => handleAction(x.id, "deliver")}
+                        disabled={actionKey === deliveringKey}
+                        className="w-full text-sm rounded-lg px-3 py-2.5 font-semibold text-white bg-green-600 hover:bg-green-700 transition disabled:opacity-60">
+                        {actionKey === deliveringKey ? "Processing…" : "Mark as Delivered"}
+                      </button>
+                    )}
+
+                    {/* Delivered but not yet confirmed → disabled amber button */}
+                    {isActive && iDelivered && !myDeliveryConfirmed && (
+                      <button type="button" disabled
+                        className="w-full text-sm rounded-lg px-3 py-2.5 font-semibold text-amber-700 bg-amber-50 border border-amber-200 cursor-not-allowed">
+                        Awaiting Confirmation
+                      </button>
+                    )}
+                    {/* Confirmed → no button, pill shows it */}
                   </div>
-                )}
+
+                  {/* ── SKILL RECEIVING CARD ── */}
+                  <div className={`rounded-xl border p-3.5 transition ${
+                    receivingPill === "confirmed"        ? "bg-green-50 border-green-200"
+                    : receivingPill === "confirm_delivery" ? "bg-blue-50 border-blue-200"
+                    : "bg-gray-50 border-gray-100"
+                  }`}>
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <p className="text-[11px] font-extrabold tracking-wide uppercase text-gray-500">
+                        Skill Receiving
+                        <span className="ml-1 normal-case font-semibold text-gray-400">(You receive)</span>
+                      </p>
+                      <StatusPill type={receivingPill} />
+                    </div>
+                    <div className="flex flex-col gap-2 mb-3">
+                      <Row label="Skill"          value={theirSkill}       />
+                      <Row label="Scheduled Slot" value={x.preferred_slot} />
+                      <div className="flex gap-2 text-sm items-center">
+                        <span className="font-semibold text-gray-700 w-36 shrink-0">Mode:</span>
+                        <ModePill mode={x.mode} />
+                      </div>
+                    </div>
+
+                    {/* They delivered but I haven't confirmed → show button */}
+                    {isActive && theyDelivered && !iReceived && (
+                      <button type="button"
+                        onClick={() => handleAction(x.id, "receive")}
+                        disabled={actionKey === receivingKey}
+                        className="w-full text-sm rounded-lg px-3 py-2.5 font-semibold text-white bg-blue-600 hover:bg-blue-700 transition disabled:opacity-60">
+                        {actionKey === receivingKey ? "Processing…" : "Mark as Received"}
+                      </button>
+                    )}
+
+                    {/* They haven't delivered yet → no button, just info */}
+                    {isActive && !theyDelivered && (
+                      <p className="text-xs text-gray-400 italic mt-1">
+                        Waiting for {partnerName.split(" ")[0]} to mark as delivered.
+                      </p>
+                    )}
+                    {/* Confirmed → no button, pill shows it */}
+                  </div>
+                </div>
 
                 <div className="border-t border-gray-100 my-3" />
 
-                {/* Actions */}
+                {/* Bottom actions */}
                 <div className="flex flex-wrap gap-2">
-                  {tab === "active" && (
+                  {isActive && (
                     cancelConfirmId === x.id ? (
                       <div className="flex items-center gap-2">
                         <button onClick={() => handleCancel(x.id)}

@@ -10,8 +10,10 @@ import SendRequestModal, { SkillForRequest } from "@/app/components/dashboard/us
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
 const CITIES = [
-  "Islamabad", "Rawalpindi", "Lahore",   "Karachi",   "Faisalabad",
-  "Peshawar",  "Multan",     "Quetta",   "Gujranwala","Online",
+  "Islamabad", "Rawalpindi", "Lahore", "Karachi", "Faisalabad",
+  "Multan", "Peshawar", "Quetta", "Gujranwala", "Sialkot",
+  "Hyderabad", "Bahawalpur", "Sargodha", "Abbottabad", "Gujrat",
+  "Online",
 ] as const;
 
 function inputCls(): string {
@@ -34,7 +36,7 @@ function Pill({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
       <span className="font-semibold text-gray-700">{label}:</span>{" "}
-      <span className="break-words text-gray-600">{value || "—"}</span>
+      <span className="wrap-break-word text-gray-600">{value || "—"}</span>
     </div>
   );
 }
@@ -139,7 +141,7 @@ export default function BrowseSkillsPage() {
           </div>
 
           <div className="min-w-0">
-            <FilterLabel>Location</FilterLabel>
+            <FilterLabel>Location / Mode</FilterLabel>
             <select className={inputCls()} value={city} onChange={(e) => setCity(e.target.value)}>
               <option value="">All Cities</option>
               {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -195,7 +197,7 @@ export default function BrowseSkillsPage() {
                 {/* Thumbnail */}
                 <div className="relative w-full md:w-[220px] h-[160px] rounded-2xl overflow-hidden bg-green-50 shrink-0">
                   {imageUrl
-                    ? <Image src={imageUrl} alt={skill.title} fill className="object-cover" unoptimized />
+                    ? <Image src={imageUrl} alt={skill.title} fill className="object-fill" unoptimized />
                     : <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl">🖼</div>
                   }
                 </div>
@@ -209,7 +211,7 @@ export default function BrowseSkillsPage() {
                     <Pill label="Email"        value={skill.provider_email} />
                     <Pill label="Category"     value={resolveSkillCategory(skill)} />
                     <Pill label="Level"        value={skill.level}          />
-                    <Pill label="Location"     value={skill.location}       />
+                    <Pill label="Location / Mode"     value={skill.location}       />
                     <Pill label="Availability" value={skill.availability}   />
                   </div>
 

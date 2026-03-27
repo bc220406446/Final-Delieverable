@@ -527,14 +527,30 @@ export interface ApiExchangeExchange extends Struct.CollectionTypeSchema {
     preferred_slot: Schema.Attribute.String;
     provider_confirmed: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
+    provider_delivered: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     provider_email: Schema.Attribute.Email;
     provider_name: Schema.Attribute.String;
+    provider_received: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     publishedAt: Schema.Attribute.DateTime;
     requester_confirmed: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
+    requester_delivered: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     requester_email: Schema.Attribute.Email;
     requester_name: Schema.Attribute.String;
+    requester_received: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    skill_a_delivered: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    skill_a_received: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     skill_a_title: Schema.Attribute.String;
+    skill_b_delivered: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    skill_b_received: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     skill_b_title: Schema.Attribute.String;
     status: Schema.Attribute.Enumeration<['active', 'completed', 'cancelled']> &
       Schema.Attribute.DefaultTo<'active'>;
