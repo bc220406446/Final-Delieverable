@@ -12,7 +12,6 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
           user: env('GMAIL_USER'),
           pass: env('GMAIL_APP_PASSWORD'),
         },
-        tls: { rejectUnauthorized: false },
       },
       settings: {
         defaultFrom:    env('GMAIL_USER'),
@@ -32,10 +31,6 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
       register: {
         allowedFields: ['fullName', 'location'],
       },
-
-      // Tell Strapi where to point password-reset links.
-      // Without this the link renders as just "?code=..." with no domain.
-      resetPasswordUrl: `${env('FRONTEND_URL', 'http://localhost:3000')}/reset-password`,
     },
   },
 

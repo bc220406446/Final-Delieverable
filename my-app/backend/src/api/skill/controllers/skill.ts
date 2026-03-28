@@ -72,6 +72,10 @@ export default factories.createCoreController('api::skill.skill', ({ strapi }) =
 
   // PATCH /api/skills/:id/approve — admin only
   async approve(ctx: any) {
+    const user = ctx.state.user;
+    if (!user) return ctx.unauthorized('You must be logged in.');
+    if (user.role?.type !== 'admin') return ctx.forbidden('Admin access required.');
+
     const { id } = ctx.params;
     const existing = await es().findOne('api::skill.skill', id);
     if (!existing) return ctx.notFound('Skill not found.');
@@ -86,6 +90,10 @@ export default factories.createCoreController('api::skill.skill', ({ strapi }) =
 
   // PATCH /api/skills/:id/reject — admin only
   async reject(ctx: any) {
+    const user = ctx.state.user;
+    if (!user) return ctx.unauthorized('You must be logged in.');
+    if (user.role?.type !== 'admin') return ctx.forbidden('Admin access required.');
+
     const { id } = ctx.params;
     const existing = await es().findOne('api::skill.skill', id);
     if (!existing) return ctx.notFound('Skill not found.');
