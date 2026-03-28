@@ -25,7 +25,7 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
     config: {
       jwt: { expiresIn: '7d' },
 
-      // Disable built-in email confirmation — OTP lifecycle handles it.
+      // Disable built-in email confirmation - OTP lifecycle handles it.
       emailConfirmation: false,
 
       register: {

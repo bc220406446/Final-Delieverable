@@ -55,7 +55,7 @@ function StrengthBar({ password }: { password: string }): JSX.Element | null {
         <ul className="flex flex-col gap-0.5">
           {s.errors.map((e) => (
             <li key={e} className="text-xs text-red-500 flex items-center gap-1">
-              <span className="shrink-0">✗</span>{e}
+              {e}
             </li>
           ))}
         </ul>
@@ -69,7 +69,7 @@ function PasswordMatch({ password, confirm }: { password: string; confirm: strin
   const match = password === confirm;
   return (
     <p className={`mt-1.5 text-xs font-semibold ${match ? "text-green-600" : "text-red-500"}`}>
-      {match ? "✓ Passwords match" : "✗ Passwords do not match"}
+      {match ? "Passwords match" : "Passwords do not match"}
     </p>
   );
 }
@@ -109,7 +109,7 @@ export default function RegisterPage(): JSX.Element {
 
     setLoading(true);
     try {
-      // Register but do NOT log in yet — user must verify OTP first.
+      // Register but do NOT log in yet - user must verify OTP first.
       // We only store the email so the OTP page can reference it.
       await registerUser({ username: email, email, password, fullName, location });
       sessionStorage.setItem("pendingEmail", email);

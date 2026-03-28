@@ -101,7 +101,7 @@ export default function ForgotPasswordPage(): JSX.Element {
             />
           </div>
 
-          {/* Submit action — disabled after first send to prevent spam. */}
+          {/* Submit action - disabled after first send to prevent spam. */}
           <button
             type="submit"
             disabled={loading || sent}

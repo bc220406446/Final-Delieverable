@@ -38,7 +38,7 @@ export default function OtpVerificationPage(): JSX.Element {
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Runs only on the client after mount — safe to read sessionStorage here.
+  // Runs only on the client after mount - safe to read sessionStorage here.
   useEffect(() => {
     const stored = sessionStorage.getItem("pendingEmail") ?? "";
     setPendingEmail(stored);

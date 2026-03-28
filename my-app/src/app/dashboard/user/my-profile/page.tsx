@@ -21,7 +21,7 @@ export default function MyProfilePage(): JSX.Element {
   const { user } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Always read directly from auth context — setAuthData in modal updates
+  // Always read directly from auth context - setAuthData in modal updates
   // context + localStorage so data persists across refreshes.
   const displayName = user?.fullName || user?.username || "User";
   const displayEmail = user?.email || "";
@@ -38,7 +38,7 @@ export default function MyProfilePage(): JSX.Element {
   };
 
   // After modal saves it calls setAuthData which updates context.
-  // The component re-renders automatically — no local state needed.
+  // The component re-renders automatically - no local state needed.
   function handleSave(_updated: ProfileData) {
     setModalOpen(false);
   }

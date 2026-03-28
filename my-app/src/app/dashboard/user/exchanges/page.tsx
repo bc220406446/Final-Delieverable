@@ -12,7 +12,7 @@ function Row({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div className="flex gap-2 text-sm">
       <span className="font-semibold text-gray-700 shrink-0 w-36">{label}:</span>
-      <span className="text-gray-600 wrap-break-word">{value || "—"}</span>
+      <span className="text-gray-600 wrap-break-word">{value || "-"}</span>
     </div>
   );
 }

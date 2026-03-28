@@ -66,7 +66,7 @@ export default factories.createCoreController('api::report.report', () => ({
     const action = body.action ?? 'none';
 
     if ((action === 'block_user' || action === 'block_user_and_reject_skill') && report.type !== 'Exchange') {
-      // Block the reported user — find by target_id (email or username)
+      // Block the reported user - find by target_id (email or username)
       const users = await es().findMany('plugin::users-permissions.user', {
         filters: {
           $or: [
@@ -84,7 +84,7 @@ export default factories.createCoreController('api::report.report', () => ({
     }
 
     if ((action === 'reject_skill' || action === 'block_user_and_reject_skill') && report.type === 'Skill') {
-      // Reject the skill — find by title
+      // Reject the skill - find by title
       const skills = await es().findMany('api::skill.skill', {
         filters: { title: report.target_label },
         publicationState: 'preview',

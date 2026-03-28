@@ -4,7 +4,7 @@ const es = () => strapi.entityService as any;
 
 export default factories.createCoreController('api::skill-category.skill-category', () => ({
 
-  // GET /api/skill-categories — public read for authenticated users
+  // GET /api/skill-categories - public read for authenticated users
   async find(ctx: any) {
     const categories = await es().findMany('api::skill-category.skill-category', {
       populate: { image: true },
@@ -13,7 +13,7 @@ export default factories.createCoreController('api::skill-category.skill-categor
     return ctx.send({ data: categories });
   },
 
-  // POST /api/skill-categories — admin only
+  // POST /api/skill-categories - admin only
   async create(ctx: any) {
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized();
@@ -25,7 +25,7 @@ export default factories.createCoreController('api::skill-category.skill-categor
     return ctx.send({ data: created });
   },
 
-  // PUT /api/skill-categories/:id — admin only
+  // PUT /api/skill-categories/:id - admin only
   async update(ctx: any) {
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized();
@@ -38,7 +38,7 @@ export default factories.createCoreController('api::skill-category.skill-categor
     return ctx.send({ data: updated });
   },
 
-  // DELETE /api/skill-categories/:id — admin only
+  // DELETE /api/skill-categories/:id - admin only
   async delete(ctx: any) {
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized();

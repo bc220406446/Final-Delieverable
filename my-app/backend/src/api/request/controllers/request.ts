@@ -50,7 +50,7 @@ export default factories.createCoreController('api::request.request', () => ({
     // Email to provider
     await sendRequestEmail(
       body.provider_email,
-      'New Skill Exchange Request — CSEP',
+      'New Skill Exchange Request - CSEP',
       `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;border:1px solid #e5e7eb;border-radius:12px">
         <h2 style="color:#14532d">New Exchange Request</h2>
         <p><strong>${user.fullName || user.username}</strong> wants to exchange skills with you.</p>
@@ -68,7 +68,7 @@ export default factories.createCoreController('api::request.request', () => ({
     // Confirmation to requester
     await sendRequestEmail(
       user.email,
-      'Request Sent — CSEP',
+      'Request Sent - CSEP',
       `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;border:1px solid #e5e7eb;border-radius:12px">
         <h2 style="color:#14532d">Your Request Was Sent!</h2>
         <p>Your exchange request has been sent to <strong>${body.provider_name}</strong>.</p>
@@ -83,7 +83,7 @@ export default factories.createCoreController('api::request.request', () => ({
     return ctx.send({ data: created });
   },
 
-  // PUT /api/requests/:id — requester edits their pending request
+  // PUT /api/requests/:id - requester edits their pending request
   async update(ctx: any) {
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized('You must be logged in.');
@@ -110,12 +110,12 @@ export default factories.createCoreController('api::request.request', () => ({
     const body                = ctx.request.body?.data ?? ctx.request.body ?? {};
     const acceptedSkillTitle  = body.accepted_skill_title ?? req.offered_skill_title;
 
-    // 1 — Update request status
+    // 1 - Update request status
     const updated = await es().update('api::request.request', id, {
       data: { status: 'accepted', accepted_skill_title: acceptedSkillTitle },
     });
 
-    // 2 — Auto-create Exchange record
+    // 2 - Auto-create Exchange record
     // skill_a = what requester provides (accepted_skill_title chosen by provider)
     // skill_b = what provider provides (requested_skill_title from the request)
     const exchangeCount = await es().count('api::exchange.exchange');
@@ -140,10 +140,10 @@ export default factories.createCoreController('api::request.request', () => ({
 
     strapi.log.info(`[CSEP] Exchange ${exchangeId} created for request ${id}`);
 
-    // 3 — Single combined email to requester (accepted + exchange created)
+    // 3 - Single combined email to requester (accepted + exchange created)
     await sendRequestEmail(
       req.requester_email,
-      'Request Accepted & Exchange Created — CSEP',
+      'Request Accepted & Exchange Created - CSEP',
       `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;border:1px solid #e5e7eb;border-radius:12px">
         <h2 style="color:#14532d">🎉 Request Accepted!</h2>
         <p><strong>${req.provider_name || user.fullName || user.username}</strong> accepted your exchange request and an exchange has been created.</p>
@@ -176,7 +176,7 @@ export default factories.createCoreController('api::request.request', () => ({
     // Email requester
     await sendRequestEmail(
       req.requester_email,
-      'Your Request Was Declined — CSEP',
+      'Your Request Was Declined - CSEP',
       `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;border:1px solid #e5e7eb;border-radius:12px">
         <h2 style="color:#991b1b">Request Declined</h2>
         <p><strong>${req.provider_name}</strong> was unable to accept your request at this time.</p>

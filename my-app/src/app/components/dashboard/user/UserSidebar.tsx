@@ -24,7 +24,7 @@ export default function UserSidebar() {
 
   const displayName = (user as any)?.fullName || user?.username || "User";
 
-  // profileImage is a Strapi media field — it returns an object with a url property.
+  // profileImage is a Strapi media field - it returns an object with a url property.
   // The url from Strapi is a relative path like /uploads/image.jpg so we
   // prepend STRAPI_URL to make it absolute.
   const rawUrl      = user?.profileImage?.url ?? null;
@@ -40,7 +40,7 @@ export default function UserSidebar() {
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
 
-            {/* Avatar — profileImage from Strapi or default noProfileImage */}
+            {/* Avatar - profileImage from Strapi or default noProfileImage */}
             <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 bg-gray-100 border-3 border-green-100">
               <Image
                 src={avatarUrl ?? "/images/noProfileImage.png"}

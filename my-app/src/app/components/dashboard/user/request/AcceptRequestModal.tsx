@@ -1,4 +1,4 @@
-// Modal for provider to accept a request — selects which of their skills to offer.
+// Modal for provider to accept a request - selects which of their skills to offer.
 "use client";
 
 import { useState, useEffect, JSX } from "react";
@@ -81,7 +81,7 @@ export default function AcceptRequestModal({
             <form onSubmit={handleSubmit} noValidate>
               <div className="flex flex-col gap-4">
 
-                {/* Offered skills — parse comma/plus separated titles into individual options */}
+                {/* Offered skills - parse comma/plus separated titles into individual options */}
                 <div>
                   <label className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-1.5">
                     Select Offered Skill to Accept *

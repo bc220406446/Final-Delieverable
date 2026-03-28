@@ -81,19 +81,19 @@ export default factories.createCoreController('api::exchange.exchange', () => ({
 
     if (action === 'receive') {
       if (isRequester) {
-        // User A receives skill_b from User B — only after skill_b_delivered
+        // User A receives skill_b from User B - only after skill_b_delivered
         if (!ex.skill_b_delivered) return ctx.badRequest('Provider has not delivered yet.');
         if (ex.skill_b_received)   return ctx.badRequest('Already confirmed.');
         update.skill_b_received = true;
       } else {
-        // User B receives skill_a from User A — only after skill_a_delivered
+        // User B receives skill_a from User A - only after skill_a_delivered
         if (!ex.skill_a_delivered) return ctx.badRequest('Requester has not delivered yet.');
         if (ex.skill_a_received)   return ctx.badRequest('Already confirmed.');
         update.skill_a_received = true;
       }
     }
 
-    // Check completion — all 4 flags must be true
+    // Check completion - all 4 flags must be true
     const aDelivered = update.skill_a_delivered || ex.skill_a_delivered;
     const aReceived  = update.skill_a_received  || ex.skill_a_received;
     const bDelivered = update.skill_b_delivered || ex.skill_b_delivered;
@@ -117,8 +117,8 @@ export default factories.createCoreController('api::exchange.exchange', () => ({
       html += '<p style="color:#6b7280;font-size:13px">You can now leave a review from your Exchanges page.</p>';
       html += '</div>';
       await Promise.all([
-        sendEmail(ex.requester_email, 'Exchange Completed — CSEP', html),
-        sendEmail(ex.provider_email,  'Exchange Completed — CSEP', html),
+        sendEmail(ex.requester_email, 'Exchange Completed - CSEP', html),
+        sendEmail(ex.provider_email,  'Exchange Completed - CSEP', html),
       ]);
     }
 
@@ -149,7 +149,7 @@ export default factories.createCoreController('api::exchange.exchange', () => ({
     html += '<tr><td style="padding:6px 0;color:#6b7280;width:140px">Exchange ID:</td><td style="font-weight:600">' + ex.exchange_id + '</td></tr>';
     html += '</table>';
     html += '</div>';
-    await sendEmail(otherEmail, 'Exchange Cancelled — CSEP', html);
+    await sendEmail(otherEmail, 'Exchange Cancelled - CSEP', html);
 
     return ctx.send({ data: updated });
   },

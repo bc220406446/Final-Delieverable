@@ -24,12 +24,12 @@ function statusLabel(s: StrapiRequest["status"]) {
   return s === "accepted" ? "Accepted" : s === "pending" ? "Pending" : "Rejected";
 }
 
-// Full-width pill — label bold, value on same row
+// Full-width pill - label bold, value on same row
 function Pill({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800 flex items-start gap-1.5">
       <span className="font-semibold text-gray-700 shrink-0 whitespace-nowrap">{label}:</span>
-      <span className="text-gray-600 wrap-break-word">{value || "—"}</span>
+      <span className="text-gray-600 wrap-break-word">{value || "-"}</span>
     </div>
   );
 }
@@ -39,7 +39,7 @@ function FullPill({ label, value }: { label: string; value: string }): JSX.Eleme
   return (
     <div className="col-span-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-xs text-gray-800 flex items-start gap-1.5">
       <span className="font-semibold text-green-700 shrink-0 whitespace-nowrap">{label}:</span>
-      <span className="text-gray-700 wrap-break-word font-medium">{value || "—"}</span>
+      <span className="text-gray-700 wrap-break-word font-medium">{value || "-"}</span>
     </div>
   );
 }

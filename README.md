@@ -35,15 +35,15 @@ This project is developed as an academic Web Programming project using modern fu
 
 Before running the project, make sure the following are installed:
 
-- **Node.js** v20 LTS — <https://nodejs.org>
-- **PostgreSQL** v16 or v17 — <https://www.postgresql.org/download/windows> (if want to see database table)
+- **Node.js** v20 LTS - <https://nodejs.org>
+- **PostgreSQL** v16 or v17 - <https://www.postgresql.org/download/windows> (if want to see database table)
 - **npm** (comes with Node.js)
 
 ---
 
 ## Getting Started
 
-### Step 1 — Set Up Backend (Strapi)
+### Step 1 - Set Up Backend (Strapi)
 
 **Open Terminal 1 and run:**
 
@@ -63,7 +63,7 @@ email: <muhammadkamranyar@gmail.com> & password: test@123
 
 ---
 
-### Step 2 — Set Up Frontend (Next.js)
+### Step 2 - Set Up Frontend (Next.js)
 
 **Open Terminal 2 and run:**
 
@@ -86,14 +86,14 @@ npm run dev
 
 Every time you want to run the project, open **two terminals**:
 
-**Terminal 1 — Backend:**
+**Terminal 1 - Backend:**
 
 ```bash
 cd backend
 npm run develop
 ```
 
-**Terminal 2 — Frontend:**
+**Terminal 2 - Frontend:**
 
 ```bash
 cd my-app

@@ -217,7 +217,7 @@ export interface StrapiSkillsResponse {
 
 // ─── Skill API ────────────────────────────────────────────────────────────────
 
-// Fetches skills filtered by state — used by admin manage-skills page.
+// Fetches skills filtered by state - used by admin manage-skills page.
 export async function getSkillsByState(
   state: "pending" | "approved" | "rejected",
   token: string
@@ -243,12 +243,12 @@ export async function getSkillsByState(
   }));
 }
 
-// Approves a skill — sets state to approved and publishes it.
+// Approves a skill - sets state to approved and publishes it.
 export async function approveSkill(id: number, token: string): Promise<void> {
   await strapiRequest(`/api/skills/${id}/approve`, { method: "PATCH" }, token);
 }
 
-// Rejects a skill — sets state to rejected.
+// Rejects a skill - sets state to rejected.
 export async function rejectSkill(id: number, token: string): Promise<void> {
   await strapiRequest(`/api/skills/${id}/reject`, { method: "PATCH" }, token);
 }
@@ -262,8 +262,8 @@ export async function deleteSkill(id: number, token: string): Promise<void> {
 
 
 // Fetches all approved (published) skills for the browse page.
-// No auth required — public endpoint.
-// Fetches approved skills — requires authenticated token (Authenticated role only).
+// No auth required - public endpoint.
+// Fetches approved skills - requires authenticated token (Authenticated role only).
 export async function getApprovedSkills(token: string): Promise<StrapiSkill[]> {
   const params = new URLSearchParams({
     "filters[state][$eq]": "approved",
@@ -327,7 +327,7 @@ export async function uploadFile(file: File, token: string): Promise<number> {
     method:  "POST",
     headers: { Authorization: `Bearer ${token}` },
     body:    formData,
-    // Do NOT set Content-Type — browser sets multipart boundary automatically
+    // Do NOT set Content-Type - browser sets multipart boundary automatically
   });
 
   if (!res.ok) {
@@ -383,7 +383,7 @@ export async function createSkill(
   return { id: res.data.id, ...res.data.attributes };
 }
 
-// Updates an existing skill — resets state to pending for re-review.
+// Updates an existing skill - resets state to pending for re-review.
 export async function updateSkill(
   id: number,
   payload: {
@@ -420,7 +420,7 @@ export async function updateSkill(
   return { id: res.data.id, ...res.data.attributes };
 }
 
-// uploadSkillImage removed — image is now uploaded via uploadFile() inside createSkill()
+// uploadSkillImage removed - image is now uploaded via uploadFile() inside createSkill()
 
 // ─── Request Types ────────────────────────────────────────────────────────────
 
@@ -682,7 +682,7 @@ export async function createReport(
   return res.data;
 }
 
-// Fetch all users (for report User dropdown — public profiles)
+// Fetch all users (for report User dropdown - public profiles)
 export async function getAllUsers(token: string): Promise<StrapiUser[]> {
   // /api/users returns a plain array (not wrapped in data:{})
   const res = await fetch(
@@ -723,9 +723,9 @@ export interface CmsPoliciesPage {
   community_guidelines: unknown;
 }
 
-// ─── CMS API (public — no token needed) ──────────────────────────────────────
+// ─── CMS API (public - no token needed) ──────────────────────────────────────
 
-// Helper for public CMS fetches — no auth, no-store cache for fresh content.
+// Helper for public CMS fetches - no auth, no-store cache for fresh content.
 async function cmsGet(endpoint: string): Promise<any> {
   const url = `${STRAPI_URL}${endpoint}`;
   const res = await fetch(url, { cache: "no-store" });
@@ -780,7 +780,7 @@ export async function getHomePage(): Promise<CmsHomePage | null> {
 
 // ─── Skill Category ───────────────────────────────────────────────────────────
 
-// Fetch all skill categories — used in add/edit skill form and browse filter.
+// Fetch all skill categories - used in add/edit skill form and browse filter.
 export async function getSkillCategories(token: string): Promise<StrapiSkillCategory[]> {
   const res = await strapiRequest<{ data: StrapiSkillCategory[] }>(
     "/api/skill-categories?populate[image]=true",
@@ -799,7 +799,7 @@ export async function getDefaultAvatarUrl(): Promise<string | null> {
   try {
     const res = await fetch(
       `${STRAPI_URL}/api/upload/files?filters[name][$contains]=noProfileImage`,
-      { cache: "force-cache" }  // cache aggressively — this never changes
+      { cache: "force-cache" }  // cache aggressively - this never changes
     );
     if (!res.ok) return null;
     const files = await res.json();

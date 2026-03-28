@@ -1,4 +1,4 @@
-// Ratings and reviews page — fetches real data from Strapi.
+// Ratings and reviews page - fetches real data from Strapi.
 "use client";
 
 import { JSX, useState, useEffect, useCallback } from "react";

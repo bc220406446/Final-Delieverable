@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   const [token,     setToken]     = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Hydrate from storage on mount — await cookie refresh before marking ready.
+  // Hydrate from storage on mount - await cookie refresh before marking ready.
   useEffect(() => {
     async function hydrate() {
       const storedToken = getToken();
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         // Await cookie set so middleware is ready before isLoading → false
         await setAuthCookie(storedToken, true);
       } else {
-        // No stored session — clear any stale cookie from a previous session
+        // No stored session - clear any stale cookie from a previous session
         await clearAuthCookie();
       }
       setIsLoading(false);
@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     hydrate();
   }, []);
 
-  // Called after login/register — awaitable so callers can wait for cookie.
+  // Called after login/register - awaitable so callers can wait for cookie.
   const setAuthData = useCallback(async (
     jwt: string, userData: StrapiUser, remember = true
   ): Promise<void> => {

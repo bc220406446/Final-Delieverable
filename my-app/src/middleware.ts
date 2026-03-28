@@ -1,4 +1,4 @@
-// Middleware — protects dashboard routes from unauthenticated access.
+// Middleware - protects dashboard routes from unauthenticated access.
 // Runs on the Edge before any page renders, so users never see a flash
 // of protected content before being redirected.
 
@@ -52,7 +52,7 @@ export function middleware(request: NextRequest): NextResponse {
   return NextResponse.next();
 }
 
-// Only run middleware on these paths — skip static files, API routes, etc.
+// Only run middleware on these paths - skip static files, API routes, etc.
 export const config = {
   matcher: [
     "/dashboard/:path*",

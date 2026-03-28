@@ -1,4 +1,4 @@
-// Manages the user's offered skills — fetches real data from Strapi.
+// Manages the user's offered skills - fetches real data from Strapi.
 "use client";
 
 import { useMemo, useState, useEffect, useCallback, JSX } from "react";
@@ -36,7 +36,7 @@ function Pill({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
       <span className="font-semibold text-gray-700">{label}:</span>{" "}
-      <span className="wrap-break-word text-gray-600">{value || "—"}</span>
+      <span className="wrap-break-word text-gray-600">{value || "-"}</span>
     </div>
   );
 }
@@ -95,12 +95,12 @@ export default function MyOfferedSkillsPage(): JSX.Element {
     rejected: skills.filter((s) => s.state === "rejected").length,
   }), [skills]);
 
-  // Add new skill — POST to Strapi, upload image if provided, then refresh.
+  // Add new skill - POST to Strapi, upload image if provided, then refresh.
   async function handleAddSkill(payload: SkillPayload): Promise<void> {
     if (!token || !user) return;
     setActionId(-1);
     try {
-      // Pass imageFile directly — createSkill uploads it first then
+      // Pass imageFile directly - createSkill uploads it first then
       // attaches the media ID in the same POST request.
       const created = await createSkill(
         {
@@ -127,7 +127,7 @@ export default function MyOfferedSkillsPage(): JSX.Element {
     }
   }
 
-  // Edit skill — PUT to Strapi (resets to pending for re-review), then refresh.
+  // Edit skill - PUT to Strapi (resets to pending for re-review), then refresh.
   async function handleEditSkill(id: string, payload: SkillPayload): Promise<void> {
     if (!token) return;
     const numId = Number(id);

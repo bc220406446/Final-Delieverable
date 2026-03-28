@@ -39,7 +39,7 @@ function Pill({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
       <span className="font-semibold text-gray-700">{label}:</span>{" "}
-      <span className="wrap-break-word text-gray-600">{value || "—"}</span>
+      <span className="wrap-break-word text-gray-600">{value || "-"}</span>
     </div>
   );
 }
@@ -99,7 +99,7 @@ export default function BrowseSkillsPage() {
       setCategories(cats);
 
       // Build fingerprint keys for active exchanges only.
-      // key = "provider_email|skill_title" — matches what a sent request knows about.
+      // key = "provider_email|skill_title" - matches what a sent request knows about.
       // From requester's view: they requested skill_b from provider_email.
       // From provider's view:  they requested skill_a from requester_email.
       const activeExchangeKeys = new Set<string>();
@@ -116,7 +116,7 @@ export default function BrowseSkillsPage() {
           pending.add(r.requested_skill_id);
         }
         if (r.status === "accepted") {
-          // Only block if the resulting exchange is still active —
+          // Only block if the resulting exchange is still active -
           // completed or cancelled exchanges allow re-requesting.
           const key = `${r.provider_email.toLowerCase()}|${r.requested_skill_title.toLowerCase()}`;
           if (activeExchangeKeys.has(key)) {

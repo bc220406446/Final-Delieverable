@@ -44,7 +44,7 @@ export default {
       models: ['plugin::users-permissions.user'],
       async afterCreate(event: any) {
         const { result } = event;
-        strapi.log.info(`[CSEP] afterCreate — email=${result?.email}, id=${result?.id}`);
+        strapi.log.info(`[CSEP] afterCreate - email=${result?.email}, id=${result?.id}`);
         if (!result?.email || !result?.id) return;
         try {
           await sendOtpEmail(strapi, result.id, result.email);

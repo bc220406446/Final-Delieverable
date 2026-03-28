@@ -1,4 +1,4 @@
-// Send request modal — requester selects their offered skill via checkbox cards.
+// Send request modal - requester selects their offered skill via checkbox cards.
 "use client";
 
 import { useState, useEffect, JSX } from "react";

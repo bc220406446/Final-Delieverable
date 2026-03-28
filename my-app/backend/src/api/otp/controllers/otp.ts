@@ -17,7 +17,7 @@ interface SendRecord    { count: number; resetAt: number }
 const verifyAttempts = new Map<string, AttemptRecord>();
 const sendRates      = new Map<string, SendRecord>();
 
-// Finds user by ID first (preferred — no race condition), falls back to
+// Finds user by ID first (preferred - no race condition), falls back to
 // email lookup with retries (used for resend flow).
 async function findUser(userId?: number, email?: string): Promise<any | null> {
   if (userId) {

@@ -102,7 +102,7 @@ export default function AddReportModal({ onSaved, onClose }: Props): JSX.Element
     setTargetId(x.exchange_id);
     const isRequester = x.requester_email === user?.email;
     const partner     = isRequester ? x.provider_name : x.requester_name;
-    setTargetLabel(`${x.exchange_id} — ${partner}`);
+    setTargetLabel(`${x.exchange_id} - ${partner}`);
     setErrors((p) => ({ ...p, target: "" }));
   }
 
@@ -172,7 +172,7 @@ export default function AddReportModal({ onSaved, onClose }: Props): JSX.Element
             <option value="">Choose a skill…</option>
             {skills.map((s) => (
               <option key={s.id} value={String(s.id)}>
-                {s.title} — {s.provider_name}
+                {s.title} - {s.provider_name}
               </option>
             ))}
           </select>
@@ -196,7 +196,7 @@ export default function AddReportModal({ onSaved, onClose }: Props): JSX.Element
               const partner = isReq ? x.provider_name : x.requester_name;
               return (
                 <option key={x.id} value={x.exchange_id}>
-                  {x.exchange_id} — {partner} ({x.status})
+                  {x.exchange_id} - {partner} ({x.status})
                 </option>
               );
             })}

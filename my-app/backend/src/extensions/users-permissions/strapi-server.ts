@@ -16,7 +16,7 @@ export default (plugin: any) => {
     // ── Override reset password email ─────────────────────────────────────────
     // Strapi calls this method internally when /auth/forgot-password is hit.
     // We override it to send our own email with a proper frontend URL.
-    // The resetToken parameter is the raw code Strapi generates — we embed it
+    // The resetToken parameter is the raw code Strapi generates - we embed it
     // directly in the link so /reset-password?code=... works correctly.
     userService.sendResetPasswordEmail = async (user: any, resetToken: string) => {
       strapiInstance.log.info(`[CSEP] sendResetPasswordEmail called for ${user?.email}`);

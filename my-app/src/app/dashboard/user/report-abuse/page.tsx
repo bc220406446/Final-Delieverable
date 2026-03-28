@@ -123,7 +123,7 @@ export default function ReportAbusePage(): JSX.Element {
                       <td className="px-5 py-4 align-top text-gray-600 text-sm">{r.reason}</td>
                       <td className="px-5 py-4 align-top">{statusBadge(r.report_status)}</td>
                       <td className="px-5 py-4 align-top text-gray-500 text-sm max-w-xs">
-                        {r.admin_note || <span className="italic text-gray-300">—</span>}
+                        {r.admin_note || <span className="italic text-gray-300">-</span>}
                       </td>
                     </tr>
                   ))}

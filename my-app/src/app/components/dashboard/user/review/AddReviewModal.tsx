@@ -62,7 +62,7 @@ export default function AddReviewModal({ onSaved, onClose }: Props): JSX.Element
     const isRequester = x.requester_email === user?.email;
     const partner     = isRequester ? x.provider_name   : x.requester_name;
     const skill       = isRequester ? x.skill_b_title   : x.skill_a_title; // skill they received
-    return `${skill} — ${partner} (${x.exchange_id})`;
+    return `${skill} - ${partner} (${x.exchange_id})`;
   }
 
   async function handleSave() {

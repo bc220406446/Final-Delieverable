@@ -1,5 +1,5 @@
 /**
- * skill router — custom routes + core CRUD.
+ * skill router - custom routes + core CRUD.
  */
 
 export default {

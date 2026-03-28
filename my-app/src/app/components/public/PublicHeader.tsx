@@ -13,7 +13,7 @@ const NAV_LINKS = [
   { href: "/policies", label: "Policies" },
 ];
 
-// Dashboard icon button — goes to user dashboard if logged in, else login page.
+// Dashboard icon button - goes to user dashboard if logged in, else login page.
 function DashboardButton(): JSX.Element {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -41,7 +41,7 @@ function DashboardButton(): JSX.Element {
   );
 }
 
-// Logout button — clears auth state then redirects to /logout confirmation page.
+// Logout button - clears auth state then redirects to /logout confirmation page.
 function LogoutButton({ className, children }: { className: string; children: React.ReactNode }): JSX.Element {
   const { logout } = useAuth();
   const router = useRouter();

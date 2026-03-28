@@ -47,7 +47,7 @@ export default function EditSkillModal({ skill, onSave, onClose }: Props): JSX.E
   const [errors,  setErrors]  = useState<ReturnType<typeof validateSkillForm>>({});
   const [saving,  setSaving]  = useState(false);
 
-  // Resolve selected category name — if categoryId found use its label, else fall back to stored name
+  // Resolve selected category name - if categoryId found use its label, else fall back to stored name
   const selectedCategory = useMemo(
     () => categories.find((c) => c.id === form.categoryId)?.label ?? skill.category,
     [form.categoryId, categories, skill.category]
@@ -92,7 +92,7 @@ export default function EditSkillModal({ skill, onSave, onClose }: Props): JSX.E
       await onSave(skill.id, {
         title:        form.title.trim(),
         description:  form.desc.trim(),
-        category:     form.categoryId,   // category id — Strapi stores as relation
+        category:     form.categoryId,   // category id - Strapi stores as relation
         level:        form.level as "Beginner" | "Intermediate" | "Expert",
         location:     form.city || "Online",
         availability: form.slots.trim(),

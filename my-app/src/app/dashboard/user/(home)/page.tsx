@@ -53,7 +53,7 @@ export default function UserDashboardHomePage(): JSX.Element {
 
   const [offeredSkills,    setOfferedSkills]    = useState(0);
   const [activeExchanges,  setActiveExchanges]  = useState(0);
-  const [avgRating,        setAvgRating]        = useState<string>("—");
+  const [avgRating,        setAvgRating]        = useState<string>("-");
   const [pendingReports,   setPendingReports]   = useState(0);
   const [loading,          setLoading]          = useState(true);
 
@@ -82,7 +82,7 @@ export default function UserDashboardHomePage(): JSX.Element {
             const sum = received.reduce((acc, r) => acc + r.rating, 0);
             setAvgRating((sum / received.length).toFixed(1));
           } else {
-            setAvgRating("—");
+            setAvgRating("-");
           }
         }
 

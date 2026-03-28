@@ -67,7 +67,7 @@ export default function AddSkillModal({ onSave, onClose }: Props): JSX.Element {
       await onSave({
         title:        form.title.trim(),
         description:  form.desc.trim(),
-        category:     form.categoryId,   // category id — Strapi stores as relation
+        category:     form.categoryId,   // category id - Strapi stores as relation
         level:        form.level as "Beginner" | "Intermediate" | "Expert",
         location:     form.city || "Online",
         availability: form.slots.trim(),

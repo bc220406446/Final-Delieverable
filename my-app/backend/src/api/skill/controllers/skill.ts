@@ -1,5 +1,5 @@
 /**
- * skill controller — full override of update and delete so they work on
+ * skill controller - full override of update and delete so they work on
  * drafts (pending/rejected skills that have publishedAt = null).
  */
 
@@ -32,7 +32,7 @@ export default factories.createCoreController('api::skill.skill', ({ strapi }) =
     return ctx.send({ data });
   },
 
-  // PUT /api/skills/:id — works on both drafts and published entries
+  // PUT /api/skills/:id - works on both drafts and published entries
   async update(ctx: any) {
     const { id } = ctx.params;
     const user    = ctx.state.user;
@@ -53,7 +53,7 @@ export default factories.createCoreController('api::skill.skill', ({ strapi }) =
     return ctx.send({ data: { id: updated.id, attributes: updated } });
   },
 
-  // DELETE /api/skills/:id — works on both drafts and published entries
+  // DELETE /api/skills/:id - works on both drafts and published entries
   async delete(ctx: any) {
     const { id } = ctx.params;
     const user    = ctx.state.user;
@@ -70,7 +70,7 @@ export default factories.createCoreController('api::skill.skill', ({ strapi }) =
     return ctx.send({ data: null });
   },
 
-  // PATCH /api/skills/:id/approve — admin only
+  // PATCH /api/skills/:id/approve - admin only
   async approve(ctx: any) {
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized('You must be logged in.');
@@ -88,7 +88,7 @@ export default factories.createCoreController('api::skill.skill', ({ strapi }) =
     return ctx.send({ data: updated });
   },
 
-  // PATCH /api/skills/:id/reject — admin only
+  // PATCH /api/skills/:id/reject - admin only
   async reject(ctx: any) {
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized('You must be logged in.');

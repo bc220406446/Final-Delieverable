@@ -1,13 +1,13 @@
 // Database lifecycle hook for the User model.
 // afterCreate fires AFTER the user row is fully committed to the database.
-// This is the most reliable place to send the OTP — no race condition,
+// This is the most reliable place to send the OTP - no race condition,
 // no controller override needed, works in Strapi v5 guaranteed.
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 
 export default {
 
-  // Fires after every new user is created — including registration.
+  // Fires after every new user is created - including registration.
   async afterCreate(event: any) {
     const { result } = event;
 
@@ -21,7 +21,7 @@ export default {
       const otp       = Math.floor(100000 + Math.random() * 900000).toString();
       const otpExpiry = new Date(Date.now() + OTP_TTL_MS).toISOString();
 
-      // Save OTP — user is fully in DB now so this update is safe.
+      // Save OTP - user is fully in DB now so this update is safe.
       await (strapi.entityService as any).update(
         'plugin::users-permissions.user',
         result.id,

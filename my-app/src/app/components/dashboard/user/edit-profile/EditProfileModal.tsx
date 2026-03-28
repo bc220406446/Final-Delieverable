@@ -64,7 +64,7 @@ export default function EditProfileModal({
 
     setSaving(true);
     try {
-      // Step 1 — update text fields (fullName, location, bio)
+      // Step 1 - update text fields (fullName, location, bio)
       await updateUser(
         user.id,
         {
@@ -75,17 +75,17 @@ export default function EditProfileModal({
         token
       );
 
-      // Step 2 — upload new avatar if user picked one
+      // Step 2 - upload new avatar if user picked one
       if (avatarFile) {
         await updateUserAvatar(user.id, avatarFile, token);
       }
 
-      // Step 3 — fetch fresh user data and update global auth context
+      // Step 3 - fetch fresh user data and update global auth context
       // so sidebar name/avatar and other pages reflect the change immediately.
       const freshUser = await getMe(token);
       await setAuthData(token, freshUser);
 
-      // Step 4 — notify parent page for local optimistic update
+      // Step 4 - notify parent page for local optimistic update
       onSave({
         name:      name.trim(),
         location:  location.trim(),

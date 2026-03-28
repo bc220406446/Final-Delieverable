@@ -1,4 +1,4 @@
-// Shared password strength logic — used in register, reset-password, change-password.
+// Shared password strength logic - used in register, reset-password, change-password.
 
 export type StrengthLevel = "none" | "weak" | "medium" | "strong" | "very-strong";
 
