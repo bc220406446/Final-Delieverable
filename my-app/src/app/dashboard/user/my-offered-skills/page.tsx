@@ -254,7 +254,7 @@ export default function MyOfferedSkillsPage(): JSX.Element {
                     {/* Thumbnail */}
                     <div className="relative w-full md:w-[220px] h-[160px] rounded-2xl overflow-hidden bg-gray-100 shrink-0">
                       {imageUrl ? (
-                        <Image src={imageUrl} alt={skill.title} fill className="object-cover" unoptimized />
+                        <Image src={imageUrl} alt={skill.title} fill className="object-fill" unoptimized />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl">🖼</div>
                       )}

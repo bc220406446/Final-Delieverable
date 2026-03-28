@@ -187,7 +187,7 @@ export default function SendRequestModal({ skill, onSent, onClose }: Props): JSX
                             {/* Skill thumbnail */}
                             <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                               {imgUrl ? (
-                                <Image src={imgUrl} alt={s.title} fill className="object-cover" unoptimized />
+                                <Image src={imgUrl} alt={s.title} fill className="object-fill" unoptimized />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-300 text-lg">🖼</div>
                               )}
