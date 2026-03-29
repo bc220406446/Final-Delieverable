@@ -252,7 +252,7 @@ export default function MyOfferedSkillsPage(): JSX.Element {
                   <div className="flex flex-col md:flex-row gap-4">
 
                     {/* Thumbnail */}
-                    <div className="relative w-full md:w-[220px] h-[160px] rounded-2xl overflow-hidden bg-gray-100 shrink-0">
+                    <div className="relative w-full md:w-55 h-40 rounded-2xl overflow-hidden bg-gray-100 shrink-0">
                       {imageUrl ? (
                         <Image src={imageUrl} alt={skill.title} fill className="object-fill" unoptimized />
                       ) : (

@@ -260,7 +260,7 @@ export default function EditRequestModal({ request, onSave, onClose }: Props): J
                     Message (optional)
                   </label>
                   <textarea
-                    className={`${inputCls()} min-h-[80px] resize-y`}
+                    className={`${inputCls()} min-h-20 resize-y`}
                     placeholder="Short message to the provider…"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}

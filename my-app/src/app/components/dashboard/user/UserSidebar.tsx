@@ -33,7 +33,7 @@ export default function UserSidebar() {
     : null;
 
   return (
-    <aside className="w-[260px] shrink-0 hidden lg:block">
+    <aside className="w-65 shrink-0 hidden lg:block">
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
 
         {/* ── Mini profile ─────────────────────────────────────────────── */}

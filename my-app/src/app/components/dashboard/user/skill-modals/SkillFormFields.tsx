@@ -107,7 +107,7 @@ export default function SkillFormFields({ form, errors, categories, onChange }: 
         <FieldLabel htmlFor="m-desc">Description</FieldLabel>
         <textarea
           id="m-desc"
-          className={`${inputCls(!!errors.desc)} min-h-[90px] resize-y`}
+          className={`${inputCls(!!errors.desc)} min-h-22.5 resize-y`}
           placeholder="What you can teach or do…"
           value={form.desc}
           onChange={(e) => onChange("desc", e.target.value)}

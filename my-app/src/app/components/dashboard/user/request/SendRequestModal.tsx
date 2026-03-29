@@ -253,7 +253,7 @@ export default function SendRequestModal({ skill, onSent, onClose }: Props): JSX
                     Message (optional)
                   </label>
                   <textarea
-                    className={`${inputCls()} min-h-[80px] resize-y`}
+                    className={`${inputCls()} min-h-20 resize-y`}
                     placeholder="Introduce yourself and explain what you'd like to exchange…"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
