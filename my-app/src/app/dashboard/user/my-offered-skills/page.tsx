@@ -25,13 +25,6 @@ const TABS: { key: SkillStatus; label: string }[] = [
   { key: "rejected", label: "Rejected" },
 ];
 
-function badgeClasses(status: SkillStatus): string {
-  const base = "inline-flex items-center border text-xs font-semibold px-2 py-0.5 rounded-full";
-  if (status === "approved") return `${base} bg-green-100 text-green-700 border-green-200`;
-  if (status === "pending")  return `${base} bg-yellow-100 text-yellow-700 border-yellow-200`;
-  return                            `${base} bg-red-100 text-red-700 border-red-200`;
-}
-
 function Pill({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
@@ -266,9 +259,6 @@ export default function MyOfferedSkillsPage(): JSX.Element {
                         <div className="text-base font-extrabold text-gray-900 leading-snug">
                           {skill.title}
                         </div>
-                        <span className={badgeClasses(skill.state as SkillStatus)}>
-                          {skill.state.charAt(0).toUpperCase() + skill.state.slice(1)}
-                        </span>
                       </div>
 
                       <p className="mt-1.5 text-sm text-gray-600 leading-relaxed">
