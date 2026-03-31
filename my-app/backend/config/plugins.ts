@@ -20,14 +20,27 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
     },
   },
 
+  // ─── Cloudinary Upload ────────────────────────────────────────────────────
+  upload: {
+    config: {
+      provider: 'cloudinary',
+      providerOptions: {
+        cloud_name: env('CLOUDINARY_NAME'),
+        api_key:    env('CLOUDINARY_KEY'),
+        api_secret: env('CLOUDINARY_SECRET'),
+      },
+      actionOptions: {
+        upload: {},
+        delete: {},
+      },
+    },
+  },
+
   // ─── Users & Permissions ───────────────────────────────────────────────────
   'users-permissions': {
     config: {
       jwt: { expiresIn: '7d' },
-
-      // Disable built-in email confirmation - OTP lifecycle handles it.
       emailConfirmation: false,
-
       register: {
         allowedFields: ['fullName', 'location'],
       },

@@ -10,14 +10,14 @@ const config: Core.Config.Middlewares = [
         useDefaults: true,
         directives: {
           'connect-src': ["'self'", 'https:'],
-          'img-src': ["'self'", 'data:', 'blob:', 'https:'],
+          'img-src':     ["'self'", 'data:', 'blob:', 'res.cloudinary.com'],
+          'media-src':   ["'self'", 'data:', 'blob:', 'res.cloudinary.com'],
           upgradeInsecureRequests: null,
         },
       },
     },
   },
   {
-    // Allow the Next.js frontend (localhost:3000) to call Strapi (localhost:1337).
     name: 'strapi::cors',
     config: {
       enabled: true,

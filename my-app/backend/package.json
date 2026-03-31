@@ -18,9 +18,9 @@
     "@strapi/plugin-cloud": "^5.40.0",
     "@strapi/plugin-users-permissions": "^5.40.0",
     "@strapi/provider-email-nodemailer": "^5.40.0",
+    "@strapi/provider-upload-cloudinary": "^5.40.0",
     "@strapi/strapi": "^5.40.0",
     "better-sqlite3": "12.4.1",
-    "pg": "^8.19.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.0.0",
@@ -28,8 +28,13 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "dotenv-cli": "^11.0.0",
+    "pg": "^8.20.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   },
   "engines": {
