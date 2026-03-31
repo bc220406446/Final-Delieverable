@@ -21,7 +21,7 @@ const AUTH_ONLY_ROUTES = [
 // Public routes that are always accessible regardless of auth state
 const ALWAYS_PUBLIC = ["/logout", "/otp-verification", "/confirm-email"];
 
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
   // Read token from localStorage is not possible in middleware (Edge runtime).

@@ -33,5 +33,4 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
       },
     },
   },
-
 });
