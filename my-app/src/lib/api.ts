@@ -2,9 +2,12 @@
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
+// Return the error message from Strapi response or a generic fallback.
 interface StrapiError {
   error: { status: number; name: string; message: string };
 }
+
+// Helper for making authenticated requests to Strapi API routes.
 
 async function strapiRequest<T>(
   endpoint: string,
@@ -15,10 +18,15 @@ async function strapiRequest<T>(
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
+  
+  // If token is provided, add Authorization header with Bearer token
+
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res  = await fetch(`${STRAPI_URL}${endpoint}`, { ...options, headers });
   const data = await res.json();
+
+  // centralized error handling: if response is not ok, throw an error with message from Strapi or a generic fallback 
 
   if (!res.ok) {
     const err = data as StrapiError;
@@ -27,7 +35,7 @@ async function strapiRequest<T>(
   return data as T;
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Strapi Data Access Field Types - these match the shapes of the data returned by Strapi API routes.
 
 export interface StrapiUser {
   id: number;
@@ -47,6 +55,8 @@ export interface AuthResponse {
   user: StrapiUser;
 }
 
+// Defines the payload required for user registration
+ 
 export interface RegisterPayload {
   username: string;
   email: string;
@@ -55,13 +65,14 @@ export interface RegisterPayload {
   location: string;
 }
 
+// Defines the payload required for user login
+
 export interface LoginPayload {
   identifier: string;
   password: string;
 }
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-
+/*Auth Pages - APIs*/
 // Registers a new user. The Strapi extension automatically sends the OTP email.
 export async function registerUser(payload: RegisterPayload): Promise<AuthResponse> {
   return strapiRequest<AuthResponse>("/api/auth/local/register", {
