@@ -5,8 +5,8 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
     config: {
       provider: 'nodemailer',
       providerOptions: {
-        host:   'smtp.gmail.com',
-        port:   587,
+        host: 'smtp.gmail.com',
+        port: 587,
         secure: false,
         auth: {
           user: env('GMAIL_USER'),
@@ -14,7 +14,7 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
         },
       },
       settings: {
-        defaultFrom:    env('GMAIL_USER'),
+        defaultFrom: env('GMAIL_USER'),
         defaultReplyTo: env('GMAIL_USER'),
       },
     },
@@ -26,7 +26,7 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
       provider: 'cloudinary',
       providerOptions: {
         cloud_name: env('CLOUDINARY_NAME'),
-        api_key:    env('CLOUDINARY_KEY'),
+        api_key: env('CLOUDINARY_KEY'),
         api_secret: env('CLOUDINARY_SECRET'),
       },
       actionOptions: {
@@ -39,11 +39,15 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
   // ─── Users & Permissions ───────────────────────────────────────────────────
   'users-permissions': {
     config: {
-      jwt: { expiresIn: '7d' },
+      jwt: {
+        // ✅ Updated (optional but safer format)
+        expiresIn: '7d',
+      },
       emailConfirmation: false,
       register: {
         allowedFields: ['fullName', 'location'],
       },
     },
   },
+
 });

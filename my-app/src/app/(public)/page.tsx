@@ -26,7 +26,8 @@ function CategoryCard({ title, desc, image }: CmsCategoryCard): JSX.Element {
   return (
     <div className="group cursor-pointer bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition duration-300">
       <div className="relative h-40 overflow-hidden">
-        <Image src={imgUrl} alt={title} fill className="object-cover group-hover:scale-105 transition duration-300" unoptimized />
+        <Image src={imgUrl} alt={title} fill loading="eager"
+          className="object-cover group-hover:scale-105 transition duration-300" unoptimized />
       </div>
       <div className="p-4">
         <h3 className="font-extrabold text-sm text-gray-900 leading-snug">{title}</h3>
@@ -66,7 +67,7 @@ function TeamCard({ name, role, desc, image }: CmsTeamMember): JSX.Element {
 
 export default function HomePage(): JSX.Element {
   const { isAuthenticated } = useAuth();
-  const [data,    setData]    = useState<CmsHomePage | null>(null);
+  const [data, setData] = useState<CmsHomePage | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
