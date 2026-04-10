@@ -23,7 +23,11 @@ This project was developed as an academic Web Programming project using modern f
 
 ### Database
 
-- PostgreSQL
+- PostgreSQL via **Supabase** (cloud-hosted)
+
+### Media Storage
+
+- **Cloudinary** (all uploaded images and files)
 
 ---
 
@@ -32,8 +36,20 @@ This project was developed as an academic Web Programming project using modern f
 Before running the project, make sure the following are installed:
 
 - **Node.js** v20 LTS — <https://nodejs.org>
-- **PostgreSQL** v16 or v17 — <https://www.postgresql.org/download/windows>
 - **npm** (comes with Node.js)
+
+> No local PostgreSQL installation needed. The database is hosted on Supabase and media is stored on Cloudinary. All data and files persist in the cloud — cloning the repo on a new machine only requires setting up the `.env` files.
+
+---
+
+## Cloud Services
+
+You will need accounts for the following services:
+
+| Service | Purpose | Free Tier |
+|---|---|---|
+| [Supabase](https://supabase.com) | PostgreSQL database hosting | Yes |
+| [Cloudinary](https://cloudinary.com) | Media storage and delivery | Yes |
 
 ---
 
@@ -52,17 +68,16 @@ ADMIN_JWT_SECRET=your_admin_jwt_secret
 TRANSFER_TOKEN_SALT=your_transfer_token_salt
 JWT_SECRET=your_jwt_secret
 
-# PostgreSQL
-DATABASE_CLIENT=postgres
-DATABASE_HOST=127.0.0.1
-DATABASE_PORT=5432
-DATABASE_NAME=csep
-DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=your_db_password
-DATABASE_SSL=false
+# Supabase PostgreSQL
+DATABASE_URL=postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres
+
+# Cloudinary Media Storage
+CLOUDINARY_NAME=your_cloud_name
+CLOUDINARY_KEY=your_api_key
+CLOUDINARY_SECRET=your_api_secret
 
 # Gmail SMTP (use an App Password, not your account password)
-GMAIL_USER=csep.platform@gmail.com
+GMAIL_USER=your_gmail@gmail.com
 GMAIL_APP_PASSWORD=your_16_char_app_password
 
 # Frontend URL (used in OTP and password reset emails)
@@ -127,78 +142,25 @@ npm run dev
 
 ---
 
-## Strapi Admin Setup (First Time Only)
-
-After starting Strapi, go to **<http://localhost:1337/admin>** and complete these steps:
-
-### 1. Permissions — Settings → Users & Permissions → Roles → Authenticated
-
-Enable the following:
-
-| Section | Actions |
-|---|---|
-| Exchange | `cancel`, `confirm`, `myExchanges` |
-| Request | `accept`, `create`, `delete`, `myRequests`, `reject`, `syncExchange`, `update` |
-| Review | `create`, `myReviews` |
-| Report | `create`, `myReports` |
-| Skill | `create`, `find`, `findOne`, `update`, `delete`, `mySkills`, `approve`, `reject` |
-| Skill-category | `find` |
-| Upload | `upload` |
-| Users-permissions → User | `me`, `find`, `update` |
-
-### 2. Permissions — Settings → Users & Permissions → Roles → Public
-
-Enable:
-
-| Section | Actions |
-|---|---|
-| About-page | `find` |
-| Faq-page | `find` |
-| Policies-page | `find` |
-| Home-page | `find` |
-
-### 3. Add Skill Categories
-
-Go to **Content Manager → Skill Category** and add the 7 categories:
-
-- Cognitive / Intellectual Skills
-- Technical / Hard Skills
-- Interpersonal / People Skills
-- Personal / Self-Management Skills
-- Organizational / Management Skills
-- Digital / IT Skills
-- Language / Communication
-
-### 4. Add CMS Content
-
-Go to **Content Manager** and fill in content for:
-
-- **Home Page** — hero title, subtitle, CTA, categories, steps, team members
-- **About Page** — hero, problem/solution blocks, team members
-- **FAQ Page** — hero, FAQs
-- **Policies Page** — last updated, privacy policy, terms, exchange policy, community guidelines
-
----
-
 ## User Features
 
-1. Register and login with OTP email verification
-2. Remember Me (persistent vs session login)
-3. Profile management with avatar upload
-4. Browse and filter approved skills by category, location, and level
-5. Add and manage offered skills (pending admin approval)
+1. Register with OTP email verification
+2. Login with Remember Me Option (persistent vs session login)
+3. Profile management with avatar upload (stored on Cloudinary)
+4. Add and manage offered skills (pending admin approval)
+5. Browse and filter approved skills by category, location, and level
 6. Send, edit, accept, and reject skill exchange requests
-7. Symmetric exchange management — both users mark delivery and receipt independently
+7. Symmetric exchange management - both users mark delivery and receipt independently
 8. Rating and reviews after completed exchanges
 9. Report abuse (users, skills, exchanges)
-10. CMS-driven public pages (Home, About, FAQs, Policies)
+10. View CMS-driven public pages (Home, About, FAQs, Policies)
 
 ---
 
 ## Admin Features (via Strapi Admin Panel at localhost:1337/admin)
 
 1. Approve or reject submitted skills
-2. Manage skill categories (create, edit, delete with images)
+2. Manage skill categories (create, edit, delete with images stored on Cloudinary)
 3. Block or unblock users
 4. Review and resolve abuse reports
 5. Manage all CMS content (Home, About, FAQs, Policies pages)
@@ -214,7 +176,6 @@ Go to **Content Manager** and fill in content for:
 - Route protection via Next.js middleware (cookie-based)
 - Remember Me: localStorage vs sessionStorage based on user preference
 - Field whitelisting on request updates (prevents mass assignment)
-- Admin authorization checks on all sensitive endpoints
 
 ---
 
@@ -250,8 +211,7 @@ my-app/
     ├── context/                # AuthContext (global auth state)
     └── lib/
         ├── api.ts              # All Strapi API functions
-        ├── auth.ts             # localStorage/sessionStorage helpers
-        └── useDefaultAvatar.ts # Default avatar hook
+        └── auth.ts             # localStorage/sessionStorage helpers
 ```
 
 ---

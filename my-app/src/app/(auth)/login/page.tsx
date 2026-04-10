@@ -51,7 +51,7 @@ function OrDivider(): JSX.Element {
 
 export default function LoginPage(): JSX.Element {
   const router = useRouter();
-  const { setAuthData, isAdmin } = useAuth();
+  const { setAuthData } = useAuth();
   const searchParams = useSearchParams();
   const from = searchParams.get("from");
 
@@ -61,7 +61,6 @@ export default function LoginPage(): JSX.Element {
   const [message,    setMessage]    = useState<Message | null>(null);
   const [loading,    setLoading]    = useState<boolean>(false);
 
-  // Calls Strapi /auth/local, saves JWT + user, then routes based on role.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
 
@@ -76,25 +75,16 @@ export default function LoginPage(): JSX.Element {
     try {
       const { jwt, user } = await loginUser({ identifier: email, password });
 
-      // Fetch full user with profileImage + bio + location populated.
-      // The raw login response doesn't include relations.
       const fullUser = await getMe(jwt);
       setAuthData(jwt, fullUser ?? user, rememberMe);
 
       setMessage({ type: "success", text: "Login successful! Redirecting…" });
 
-      // Route admin users to admin dashboard, regular users to user dashboard.
-      const destination =
-        (fullUser ?? user).role?.type === "admin" || (fullUser ?? user).role?.name?.toLowerCase() === "admin"
-          ? "/dashboard/admin"
-          : "/dashboard/user";
-
-      setTimeout(() => router.push(destination), 1000);
+      setTimeout(() => router.push("/dashboard/user"), 1000);
     } catch (err) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Login failed. Please try again." });
       setLoading(false);
     }
-
   }
 
   return (
@@ -112,20 +102,36 @@ export default function LoginPage(): JSX.Element {
 
           <div>
             <FieldLabel htmlFor="email">Email Address</FieldLabel>
-            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.email@example.com" className={inputCls()} />
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your.email@example.com"
+              className={inputCls()}
+            />
           </div>
 
           <div>
             <FieldLabel htmlFor="password">Password</FieldLabel>
-            <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password" className={inputCls()} />
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              className={inputCls()}
+            />
           </div>
 
           <div className="flex items-center justify-between gap-3">
             <label className="flex items-center gap-2 text-xs text-gray-600 select-none cursor-pointer">
-              <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 accent-green-600" />
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 accent-green-600"
+              />
               Remember me
             </label>
             <Link href="/forgot-password" className="text-xs font-semibold text-green-700 hover:underline">
@@ -133,8 +139,11 @@ export default function LoginPage(): JSX.Element {
             </Link>
           </div>
 
-          <button type="submit" disabled={loading}
-            className="w-full py-2.5 rounded-xl text-white text-sm font-semibold bg-green-600 hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2.5 rounded-xl text-white text-sm font-semibold bg-green-600 hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
             {loading ? "Logging in…" : "Login"}
           </button>
 
@@ -142,8 +151,11 @@ export default function LoginPage(): JSX.Element {
 
           <p className="text-center text-sm text-gray-600">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-green-700 font-semibold hover:underline">Register now</Link>
+            <Link href="/register" className="text-green-700 font-semibold hover:underline">
+              Register now
+            </Link>
           </p>
+
         </form>
       </div>
     </main>
