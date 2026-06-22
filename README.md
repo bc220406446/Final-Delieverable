@@ -101,7 +101,7 @@ Open **Terminal 1** and run:
 ```bash
 cd my-app/backend
 npm install
-npm run develop
+npm run dev
 ```
 
 Strapi admin panel opens at **<http://localhost:1337/admin>**
@@ -130,7 +130,7 @@ Frontend opens at **<http://localhost:3000>**
 
 ```bash
 cd my-app/backend
-npm run develop
+npm run dev
 ```
 
 **Terminal 2 — Frontend:**
