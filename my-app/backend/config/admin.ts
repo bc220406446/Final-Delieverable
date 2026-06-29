@@ -2,26 +2,26 @@ import type { Core } from '@strapi/strapi';
 
 const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Admin => ({
   auth: {
-    secret: env('ADMIN_JWT_SECRET'),
+    secret: env('ADMIN_JWT_SECRET', 'some-long-random-string'),
 
     sessions: {
-      maxRefreshTokenLifespan: 604800, // ✅ 7 days
-      maxSessionLifespan: 86400,       // ✅ 1 day
+      maxRefreshTokenLifespan: 604800, // 7 days
+      maxSessionLifespan: 86400,       // 1 day
     },
   },
 
   apiToken: {
-    salt: env('API_TOKEN_SALT'),
+    salt: env('API_TOKEN_SALT', 'some-long-random-string'),
   },
 
   transfer: {
     token: {
-      salt: env('TRANSFER_TOKEN_SALT'),
+      salt: env('TRANSFER_TOKEN_SALT', 'some-long-random-string'),
     },
   },
 
   secrets: {
-    encryptionKey: env('ENCRYPTION_KEY'),
+    encryptionKey: env('ENCRYPTION_KEY', 'some-long-random-string'),
   },
 
   flags: {

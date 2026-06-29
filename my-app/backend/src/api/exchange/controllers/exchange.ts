@@ -7,8 +7,9 @@ async function sendEmail(to: string, subject: string, html: string) {
     await (strapi.plugin('email').service('email') as any).send({
       to, subject, html, text: html.replace(/<[^>]+>/g, ''),
     });
+    strapi.log.info(`[CSEP] Exchange email sent successfully to ${to} | Subject: ${subject}`);
   } catch (err: any) {
-    strapi.log.warn('[CSEP] Exchange email failed: ' + err?.message);
+    strapi.log.warn(`[CSEP] Exchange email failed to ${to} | Subject: ${subject} | Error: ${err?.message}`);
   }
 }
 

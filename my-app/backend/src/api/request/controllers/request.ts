@@ -10,8 +10,9 @@ async function sendRequestEmail(
   try {
     await (strapi.plugin('email').service('email') as any).send({ to, subject, html,
       text: html.replace(/<[^>]+>/g, '') });
+    strapi.log.info(`[CSEP] Email sent successfully to ${to} | Subject: ${subject}`);
   } catch (err: any) {
-    strapi.log.warn(`[CSEP] Email send failed: ${err?.message}`);
+    strapi.log.warn(`[CSEP] Email send failed to ${to} | Subject: ${subject} | Error: ${err?.message}`);
   }
 }
 

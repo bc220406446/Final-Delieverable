@@ -35,10 +35,10 @@ This project was developed as an academic Web Programming project using modern f
 
 Before running the project, make sure the following are installed:
 
-- **Node.js** v20 LTS — <https://nodejs.org>
+- **Node.js** v20 LTS - <https://nodejs.org>
 - **npm** (comes with Node.js)
 
-> No local PostgreSQL installation needed. The database is hosted on Supabase and media is stored on Cloudinary. All data and files persist in the cloud — cloning the repo on a new machine only requires setting up the `.env` files.
+> No local PostgreSQL installation needed. The database is hosted on Supabase and media is stored on Cloudinary. All data and files persist in the cloud - cloning the repo on a new machine only requires setting up the `.env` files.
 
 ---
 
@@ -55,7 +55,7 @@ You will need accounts for the following services:
 
 ## Environment Setup
 
-### Backend — `my-app/backend/.env`
+### Backend - `my-app/backend/.env`
 
 Create this file with the following variables:
 
@@ -84,7 +84,7 @@ GMAIL_APP_PASSWORD=your_16_char_app_password
 FRONTEND_URL=http://localhost:3000
 ```
 
-### Frontend — `my-app/.env.local`
+### Frontend - `my-app/.env.local`
 
 ```env
 NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
@@ -94,7 +94,7 @@ NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
 
 ## Getting Started
 
-### Step 1 — Set Up and Start Backend (Strapi)
+### Step 1 - Set Up and Start Backend (Strapi)
 
 Open **Terminal 1** and run:
 
@@ -108,7 +108,7 @@ Strapi admin panel opens at **<http://localhost:1337/admin>**
 
 On first run, Strapi will prompt you to create an admin account.
 
-### Step 2 — Set Up and Start Frontend (Next.js)
+### Step 2 - Set Up and Start Frontend (Next.js)
 
 Open **Terminal 2** and run:
 
@@ -126,14 +126,14 @@ Frontend opens at **<http://localhost:3000>**
 
 ## Running After Initial Setup
 
-**Terminal 1 — Backend:**
+**Terminal 1 - Backend:**
 
 ```bash
 cd my-app/backend
 npm run dev
 ```
 
-**Terminal 2 — Frontend:**
+**Terminal 2 - Frontend:**
 
 ```bash
 cd my-app
