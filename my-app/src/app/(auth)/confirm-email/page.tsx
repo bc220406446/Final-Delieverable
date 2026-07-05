@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, JSX } from "react";
+import { Suspense, useEffect, useState, JSX } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { verifyOtp } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
-export default function ConfirmEmailPage(): JSX.Element {
+function ConfirmEmailContent(): JSX.Element {
   const router          = useRouter();
   const searchParams    = useSearchParams();
   const { setAuthData } = useAuth();
@@ -17,20 +17,19 @@ export default function ConfirmEmailPage(): JSX.Element {
     const email = searchParams.get("email");
     const code  = searchParams.get("code");
 
-    if (!email || !code) {
-      setStatus("error");
-      setErrorMsg("Invalid confirmation link. Please enter your code manually.");
-      return;
-    }
-
-    // Use async function inside useEffect to allow await
     async function verify() {
+      if (!email || !code) {
+        setStatus("error");
+        setErrorMsg("Invalid confirmation link. Please enter your code manually.");
+        return;
+      }
+
       try {
-        const { jwt, user } = await verifyOtp(decodeURIComponent(email!), code!);
+        const { jwt, user } = await verifyOtp(decodeURIComponent(email), code);
         await setAuthData(jwt, user);
         sessionStorage.removeItem("pendingEmail");
         setStatus("success");
-        setTimeout(() => router.push("/dashboard/user"), 1500);
+        setTimeout(() => router.push("/user"), 1500);
       } catch (err) {
         setStatus("error");
         setErrorMsg(
@@ -51,7 +50,7 @@ export default function ConfirmEmailPage(): JSX.Element {
         {status === "loading" && (
           <>
             <div className="w-14 h-14 mx-auto mb-5 rounded-full border-4 border-green-100 border-t-green-600 animate-spin" />
-            <h1 className="text-xl font-extrabold text-green-900">Verifying your email…</h1>
+            <h1 className="text-xl font-extrabold text-green-900">Verifying your email...</h1>
             <p className="text-sm text-gray-500 mt-2">Please wait a moment.</p>
           </>
         )}
@@ -64,7 +63,7 @@ export default function ConfirmEmailPage(): JSX.Element {
               </svg>
             </div>
             <h1 className="text-2xl font-extrabold text-green-900">Email Verified!</h1>
-            <p className="text-sm text-gray-500 mt-2">Redirecting you to your dashboard…</p>
+            <p className="text-sm text-gray-500 mt-2">Redirecting you to your dashboard...</p>
           </>
         )}
 
@@ -86,5 +85,13 @@ export default function ConfirmEmailPage(): JSX.Element {
 
       </div>
     </main>
+  );
+}
+
+export default function ConfirmEmailPage(): JSX.Element {
+  return (
+    <Suspense fallback={null}>
+      <ConfirmEmailContent />
+    </Suspense>
   );
 }

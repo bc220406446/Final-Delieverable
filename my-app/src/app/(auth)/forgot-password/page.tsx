@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useState, JSX } from "react";
 import { forgotPassword } from "@/lib/api";
-
-interface Message { type: "error" | "success"; text: string }
+import MessageBanner, { FormMessage } from "@/app/components/shared/MessageBanner";
 
 function inputCls(): string {
   return [
@@ -14,30 +13,12 @@ function inputCls(): string {
   ].join(" ");
 }
 
-function MessageBanner({ message }: { message: Message | null }): JSX.Element | null {
-  if (!message) return null;
-  return (
-    <div
-      className={`mb-5 rounded-xl border px-4 py-3 text-sm ${
-        message.type === "error"
-          ? "bg-red-50 border-red-200 text-red-700"
-          : "bg-green-50 border-green-200 text-green-700"
-      }`}
-      role="alert"
-    >
-      {message.text}
-    </div>
-  );
-}
-
-// Renders the forgot-password page and calls Strapi's reset-link endpoint.
 export default function ForgotPasswordPage(): JSX.Element {
   const [email,    setEmail]    = useState<string>("");
-  const [message,  setMessage]  = useState<Message | null>(null);
+  const [message,  setMessage]  = useState<FormMessage | null>(null);
   const [loading,  setLoading]  = useState<boolean>(false);
   const [sent,     setSent]     = useState<boolean>(false);
 
-  // Calls Strapi /auth/forgot-password which sends a reset link to the user's email.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     setMessage(null);
@@ -56,13 +37,12 @@ export default function ForgotPasswordPage(): JSX.Element {
         text: "If an account exists for this email, a reset link has been sent. Please check your inbox (and spam).",
       });
     } catch (err) {
-      // Even on error we show a generic message to avoid email enumeration.
+      // Keep the response generic so the page does not reveal registered emails.
       setSent(true);
       setMessage({
         type: "success",
         text: "If an account exists for this email, a reset link has been sent. Please check your inbox (and spam).",
       });
-      // Log the actual error for debugging only.
       console.error("Forgot password error:", err);
     } finally {
       setLoading(false);
@@ -73,7 +53,6 @@ export default function ForgotPasswordPage(): JSX.Element {
     <main className="min-h-[calc(100vh-200px)] flex items-center justify-center px-5 py-16 bg-gray-50">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 max-w-md w-full p-6 md:p-8">
 
-        {/* Intro section explaining email-based password recovery flow. */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-extrabold text-green-900">Forgot Password</h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -85,7 +64,6 @@ export default function ForgotPasswordPage(): JSX.Element {
 
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
 
-          {/* Email input section for the account recovery address. */}
           <div>
             <label htmlFor="email" className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-1.5">
               Email Address
@@ -101,16 +79,14 @@ export default function ForgotPasswordPage(): JSX.Element {
             />
           </div>
 
-          {/* Submit action - disabled after first send to prevent spam. */}
           <button
             type="submit"
             disabled={loading || sent}
             className="w-full py-2.5 rounded-xl text-white text-sm font-semibold bg-green-600 hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? "Sending…" : sent ? "Email Sent ✓" : "Send Reset Link"}
+            {loading ? "Sending..." : sent ? "Email Sent ✓" : "Send Reset Link"}
           </button>
 
-          {/* Navigation links related to auth flow recovery alternatives. */}
           <div className="flex items-center justify-between text-xs font-semibold pt-1">
             <Link href="/login"    className="text-green-700 hover:underline">Back to Login</Link>
             <Link href="/register" className="text-green-700 hover:underline">Create an Account</Link>

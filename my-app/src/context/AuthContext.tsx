@@ -7,7 +7,6 @@ import {
 import type { StrapiUser } from "@/lib/api";
 import { getToken, getUser, saveToken, saveUser, clearAuth } from "@/lib/auth";
 
-// ── Cookie helpers ────────────────────────────────────────────────────────────
 // Sets/clears csep_token cookie via a Next.js API route so middleware can read it.
 
 async function setAuthCookie(token: string, remember: boolean): Promise<void> {
@@ -26,7 +25,6 @@ async function clearAuthCookie(): Promise<void> {
   } catch { /* non-critical */ }
 }
 
-// ── Context ───────────────────────────────────────────────────────────────────
 
 interface AuthContextValue {
   user:            StrapiUser | null;

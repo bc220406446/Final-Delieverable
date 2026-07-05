@@ -80,7 +80,7 @@ export default function HomePage(): JSX.Element {
   if (loading) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-sm text-gray-400">Loading…</p>
+        <p className="text-sm text-gray-400">Loading...</p>
       </main>
     );
   }
@@ -98,7 +98,6 @@ export default function HomePage(): JSX.Element {
   return (
     <main className="bg-gray-50 text-gray-800">
 
-      {/* Hero */}
       <section className="bg-linear-to-br from-green-700 to-green-500 text-white py-20 px-5">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div>
@@ -108,7 +107,7 @@ export default function HomePage(): JSX.Element {
             <p className="text-base md:text-lg mb-8 opacity-90">{data.hero_subtitle}</p>
             {data.hero_cta_label && (
               <Link
-                href={isAuthenticated ? "/dashboard/user" : "/register"}
+                href={isAuthenticated ? "/user" : "/register"}
                 className="inline-flex items-center justify-center bg-white text-green-700 font-semibold text-sm px-8 py-3 rounded-xl hover:shadow-lg transition"
               >
                 {data.hero_cta_label}
@@ -121,7 +120,6 @@ export default function HomePage(): JSX.Element {
         </div>
       </section>
 
-      {/* Categories */}
       {data.categories?.length > 0 && (
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-5">
@@ -133,7 +131,6 @@ export default function HomePage(): JSX.Element {
         </section>
       )}
 
-      {/* How It Works */}
       {data.steps?.length > 0 && (
         <section className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-5">
@@ -145,7 +142,6 @@ export default function HomePage(): JSX.Element {
         </section>
       )}
 
-      {/* Team */}
       {data.team_members?.length > 0 && (
         <section className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-5">

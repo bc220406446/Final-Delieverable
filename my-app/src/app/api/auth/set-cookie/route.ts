@@ -1,4 +1,3 @@
-// Next.js API route to set/clear the auth cookie server-side.
 // Called by AuthContext after login so middleware can read it reliably.
 
 import { NextRequest, NextResponse } from "next/server";

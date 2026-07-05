@@ -1,9 +1,16 @@
-// Core API client for communicating with Strapi backend.
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
 interface StrapiError {
   error: { status: number; name: string; message: string };
+}
+
+interface StrapiErrorLike {
+  error?: { message?: string };
+}
+
+function getStrapiErrorMessage(err: unknown): string | undefined {
+  return (err as StrapiErrorLike)?.error?.message;
 }
 
 async function strapiRequest<T>(
@@ -27,7 +34,6 @@ async function strapiRequest<T>(
   return data as T;
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface StrapiUser {
   id: number;
@@ -60,9 +66,7 @@ export interface LoginPayload {
   password: string;
 }
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
 
-// Registers a new user. The Strapi extension automatically sends the OTP email.
 export async function registerUser(payload: RegisterPayload): Promise<AuthResponse> {
   return strapiRequest<AuthResponse>("/api/auth/local/register", {
     method: "POST",
@@ -103,7 +107,6 @@ export async function getMe(token: string): Promise<StrapiUser> {
   return strapiRequest<StrapiUser>("/api/users/me?populate=role&populate=profileImage&fields[0]=id&fields[1]=username&fields[2]=email&fields[3]=confirmed&fields[4]=blocked&fields[5]=fullName&fields[6]=location&fields[7]=bio", {}, token);
 }
 
-// Updates user profile fields (fullName, location, bio).
 export async function updateUser(
   id: number,
   data: Partial<Pick<StrapiUser, "fullName" | "location" | "username" | "bio">>,
@@ -116,8 +119,6 @@ export async function updateUser(
   );
 }
 
-// Uploads a new profile image and attaches it to the user record.
-// Returns the updated user object.
 export async function updateUserAvatar(
   userId: number,
   file: File,
@@ -139,16 +140,13 @@ export async function updateUserAvatar(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error((err as any)?.error?.message ?? `Avatar upload failed (${res.status})`);
+    throw new Error(getStrapiErrorMessage(err) ?? `Avatar upload failed (${res.status})`);
   }
 
-  // Fetch updated user so caller gets the new profileImage url.
   return getMe(token);
 }
 
-// ─── Custom OTP API ───────────────────────────────────────────────────────────
 
-// Resends the OTP email to the given address (called from OTP page resend button).
 export async function resendOtp(email: string): Promise<{ ok: boolean }> {
   return strapiRequest<{ ok: boolean }>("/api/otp/send", {
     method: "POST",
@@ -156,7 +154,6 @@ export async function resendOtp(email: string): Promise<{ ok: boolean }> {
   });
 }
 
-// Verifies the 6-digit code and returns a JWT + confirmed user on success.
 export async function verifyOtp(email: string, code: string): Promise<AuthResponse> {
   return strapiRequest<AuthResponse>("/api/otp/verify", {
     method: "POST",
@@ -164,7 +161,6 @@ export async function verifyOtp(email: string, code: string): Promise<AuthRespon
   });
 }
 
-// Confirms email via the token from the link in the email (used by /confirm-email page).
 export async function confirmEmailToken(token: string): Promise<{ jwt: string; user: StrapiUser }> {
   const res = await fetch(
     `${STRAPI_URL}/api/auth/email-confirmation?confirmation=${token}`
@@ -176,22 +172,28 @@ export async function confirmEmailToken(token: string): Promise<{ jwt: string; u
   return res.json();
 }
 
-// ─── Skill Types ──────────────────────────────────────────────────────────────
 
 export interface StrapiSkillCategory {
   id:          number;
   name:        string;
   description: string;
-  image?:      { url: string } | null;
+  image?:      StrapiMedia | null;
+}
+
+export interface StrapiMediaFormat {
+  url?: string;
+}
+
+export interface StrapiMedia {
+  url?: string;
+  formats?: Record<string, StrapiMediaFormat | undefined>;
 }
 
 export interface StrapiSkill {
   id:            number;
   title:         string;
   description:   string;
-  // After relation migration: category is an object { id, name }.
-  // resolveSkillCategory() always gives you the plain name string.
-  category:      StrapiSkillCategory | null;
+  category:      StrapiSkillCategory | string | null;
   level:         string;
   location:      string;
   availability:  string;
@@ -199,25 +201,59 @@ export interface StrapiSkill {
   provider_name: string;
   provider_email: string;
   publishedAt:   string | null;
-  image?: { url: string } | null;
+  image?: StrapiMedia | null;
 }
 
-// Always returns the category name string regardless of data shape.
 export function resolveSkillCategory(skill: StrapiSkill): string {
   if (!skill.category) return "";
-  if (typeof skill.category === "string") return skill.category as string;
+  if (typeof skill.category === "string") return skill.category;
   return (skill.category as StrapiSkillCategory).name ?? "";
 }
 
-// Strapi v5 REST returns flat objects: { id, title, ... } not { id, attributes: {...} }
+type StrapiRelation<T> = T | { data?: T | { attributes?: T } | null } | null;
+type StrapiSkillRaw = Omit<StrapiSkill, "image" | "category"> & {
+  attributes?: Partial<StrapiSkill>;
+  image?: StrapiRelation<StrapiMedia>;
+  category?: StrapiRelation<StrapiSkillCategory | string>;
+};
+
+function resolveRelation<T>(value: StrapiRelation<T> | undefined): T | null {
+  if (!value) return null;
+  if (typeof value === "object" && "data" in value) {
+    const data = value.data;
+    if (!data) return null;
+    if (typeof data === "object" && "attributes" in data) return data.attributes ?? null;
+    return data as T;
+  }
+  return value as T;
+}
+
+function normalizeSkill(item: StrapiSkillRaw): StrapiSkill {
+  const base = item.attributes ?? item;
+  return {
+    ...base,
+    id: item.id ?? base.id ?? 0,
+    image: resolveRelation(item.image ?? base.image ?? null),
+    category: resolveRelation(item.category ?? base.category ?? null),
+  } as StrapiSkill;
+}
+
+export function resolveStrapiMediaUrl(media: StrapiMedia | null | undefined): string | null {
+  const url = media?.url
+    ?? media?.formats?.medium?.url
+    ?? media?.formats?.small?.url
+    ?? media?.formats?.thumbnail?.url
+    ?? null;
+  if (!url) return null;
+  return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
+}
+
 export interface StrapiSkillsResponse {
-  data: (StrapiSkill & { id: number })[];
+  data: StrapiSkillRaw[];
   meta: { pagination: { total: number } };
 }
 
-// ─── Skill API ────────────────────────────────────────────────────────────────
 
-// Fetches skills filtered by state - used by admin manage-skills page.
 export async function getSkillsByState(
   state: "pending" | "approved" | "rejected",
   token: string
@@ -236,34 +272,22 @@ export async function getSkillsByState(
     token
   );
 
-  return res.data.map((item: any) => ({
-    ...item,
-    image:    item.image?.url ? item.image : item.image?.data?.attributes ?? item.image ?? null,
-    category: item.category?.data?.attributes ?? item.category?.data ?? item.category ?? null,
-  }));
+  return res.data.map((item) => normalizeSkill(item));
 }
 
-// Approves a skill - sets state to approved and publishes it.
 export async function approveSkill(id: number, token: string): Promise<void> {
   await strapiRequest(`/api/skills/${id}/approve`, { method: "PATCH" }, token);
 }
 
-// Rejects a skill - sets state to rejected.
 export async function rejectSkill(id: number, token: string): Promise<void> {
   await strapiRequest(`/api/skills/${id}/reject`, { method: "PATCH" }, token);
 }
 
-// Deletes a skill permanently.
 export async function deleteSkill(id: number, token: string): Promise<void> {
-  // Our custom delete controller returns { data: null } (not 204)
-  // so strapiRequest can parse it normally.
   await strapiRequest(`/api/skills/${id}`, { method: "DELETE" }, token);
 }
 
 
-// Fetches all approved (published) skills for the browse page.
-// No auth required - public endpoint.
-// Fetches approved skills - requires authenticated token (Authenticated role only).
 export async function getApprovedSkills(token: string): Promise<StrapiSkill[]> {
   const params = new URLSearchParams({
     "filters[state][$eq]": "approved",
@@ -278,16 +302,10 @@ export async function getApprovedSkills(token: string): Promise<StrapiSkill[]> {
     token
   );
 
-  return res.data.map((item: any) => ({
-    ...item,
-    image:    item.image?.url ? item.image : item.image?.data?.attributes ?? item.image ?? null,
-    category: item.category?.data?.attributes ?? item.category?.data ?? item.category ?? null,
-  }));
+  return res.data.map((item) => normalizeSkill(item));
 }
 
-// ─── User Skill API ───────────────────────────────────────────────────────────
 
-// Fetches skills belonging to the currently logged-in user.
 export async function getMySkills(token: string): Promise<StrapiSkill[]> {
   const params = new URLSearchParams({
     "populate[image]":    "true",
@@ -302,22 +320,9 @@ export async function getMySkills(token: string): Promise<StrapiSkill[]> {
     token
   );
 
-  return res.data.map((item: any) => {
-    const base = item.attributes ?? item;
-    return {
-      ...base,
-      id:       item.id ?? base.id,
-      image:    base.image?.data?.attributes ?? base.image ?? null,
-      // Relation: category comes back as { id, name, ... } flat object
-      category: base.category?.data?.attributes
-             ?? base.category?.data
-             ?? base.category
-             ?? null,
-    };
-  });
+  return res.data.map((item) => normalizeSkill(item));
 }
 
-// Uploads a file to Strapi media library and returns its media ID.
 export async function uploadFile(file: File, token: string): Promise<number> {
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
   const formData  = new FormData();
@@ -327,12 +332,11 @@ export async function uploadFile(file: File, token: string): Promise<number> {
     method:  "POST",
     headers: { Authorization: `Bearer ${token}` },
     body:    formData,
-    // Do NOT set Content-Type - browser sets multipart boundary automatically
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error((err as any)?.error?.message ?? `Upload failed (${res.status})`);
+    throw new Error(getStrapiErrorMessage(err) ?? `Upload failed (${res.status})`);
   }
 
   const data = await res.json() as { id: number }[];
@@ -340,8 +344,6 @@ export async function uploadFile(file: File, token: string): Promise<number> {
   return data[0].id;
 }
 
-// Creates a new skill as a pending draft.
-// If imageFile is provided, uploads it first then attaches via image ID.
 export async function createSkill(
   payload: {
     title:          string;
@@ -359,13 +361,11 @@ export async function createSkill(
   let imageId: number | undefined;
   if (imageFile) imageId = await uploadFile(imageFile, token);
 
-  // If category is a numeric string or number, send as relation id
-  // If it's a name string, send as-is (legacy fallback)
   const categoryValue = typeof payload.category === "number" || /^\d+$/.test(String(payload.category))
     ? Number(payload.category)
     : payload.category;
 
-  const res = await strapiRequest<{ data: { id: number; attributes: any } }>(
+  const res = await strapiRequest<{ data: { id: number; attributes: Partial<StrapiSkill> } }>(
     "/api/skills",
     {
       method: "POST",
@@ -380,10 +380,9 @@ export async function createSkill(
     },
     token
   );
-  return { id: res.data.id, ...res.data.attributes };
+  return { id: res.data.id, ...res.data.attributes } as StrapiSkill;
 }
 
-// Updates an existing skill - resets state to pending for re-review.
 export async function updateSkill(
   id: number,
   payload: {
@@ -397,13 +396,12 @@ export async function updateSkill(
   token: string,
   imageFile?: File | null
 ): Promise<StrapiSkill> {
-  // Upload new image first if provided
   let imageId: number | undefined;
   if (imageFile) {
     imageId = await uploadFile(imageFile, token);
   }
 
-  const res = await strapiRequest<{ data: { id: number; attributes: any } }>(
+  const res = await strapiRequest<{ data: { id: number; attributes: Partial<StrapiSkill> } }>(
     `/api/skills/${id}`,
     {
       method: "PUT",
@@ -417,12 +415,10 @@ export async function updateSkill(
     },
     token
   );
-  return { id: res.data.id, ...res.data.attributes };
+  return { id: res.data.id, ...res.data.attributes } as StrapiSkill;
 }
 
-// uploadSkillImage removed - image is now uploaded via uploadFile() inside createSkill()
 
-// ─── Request Types ────────────────────────────────────────────────────────────
 
 export interface StrapiRequest {
   id:                    number;
@@ -447,14 +443,11 @@ export interface MyRequestsResponse {
   received: StrapiRequest[];
 }
 
-// ─── Request API ──────────────────────────────────────────────────────────────
 
-// Fetches sent and received requests for the logged-in user.
 export async function getMyRequests(token: string): Promise<MyRequestsResponse> {
   return strapiRequest<MyRequestsResponse>("/api/requests/my-requests", {}, token);
 }
 
-// Sends a new skill exchange request.
 export async function createRequest(
   payload: {
     provider_name:         string;
@@ -477,7 +470,6 @@ export async function createRequest(
   return res.data;
 }
 
-// Updates a pending request (requester edits their own request).
 export async function updateRequest(
   id: number,
   payload: {
@@ -497,7 +489,6 @@ export async function updateRequest(
   return res.data;
 }
 
-// Provider accepts a received request with the skill they will provide.
 export async function acceptRequest(
   id: number,
   token: string,
@@ -521,7 +512,6 @@ export async function acceptRequest(
   );
 }
 
-// Provider rejects a received request with optional reason.
 export async function rejectRequest(
   id: number,
   token: string,
@@ -537,12 +527,10 @@ export async function rejectRequest(
   );
 }
 
-// Requester cancels their own pending request.
 export async function cancelRequest(id: number, token: string): Promise<void> {
   await strapiRequest(`/api/requests/${id}`, { method: "DELETE" }, token);
 }
 
-// ─── Exchange Types ───────────────────────────────────────────────────────────
 
 export interface StrapiExchange {
   id:                   number;
@@ -567,7 +555,6 @@ export interface StrapiExchange {
   createdAt:            string;
 }
 
-// ─── Exchange API ─────────────────────────────────────────────────────────────
 
 export async function getMyExchanges(token: string): Promise<StrapiExchange[]> {
   const res = await strapiRequest<{ data: StrapiExchange[] }>(
@@ -576,7 +563,6 @@ export async function getMyExchanges(token: string): Promise<StrapiExchange[]> {
   return res.data;
 }
 
-// User marks their side as done.
 export async function confirmExchange(
   id: number,
   token: string,
@@ -593,7 +579,6 @@ export async function confirmExchange(
   return res.data;
 }
 
-// Either party cancels the exchange.
 export async function cancelExchange(id: number, token: string): Promise<StrapiExchange> {
   const res = await strapiRequest<{ data: StrapiExchange }>(
     `/api/exchanges/${id}/cancel`, { method: "PATCH" }, token
@@ -601,7 +586,6 @@ export async function cancelExchange(id: number, token: string): Promise<StrapiE
   return res.data;
 }
 
-// ─── Review Types ─────────────────────────────────────────────────────────────
 
 export interface StrapiReview {
   id:             number;
@@ -621,7 +605,6 @@ export interface MyReviewsResponse {
   received: StrapiReview[];
 }
 
-// ─── Review API ───────────────────────────────────────────────────────────────
 
 export async function getMyReviews(token: string): Promise<MyReviewsResponse> {
   return strapiRequest<MyReviewsResponse>("/api/reviews/my-reviews", {}, token);
@@ -639,7 +622,6 @@ export async function createReview(
   return res.data;
 }
 
-// ─── Report Types ─────────────────────────────────────────────────────────────
 
 export interface StrapiReport {
   id:             number;
@@ -655,7 +637,6 @@ export interface StrapiReport {
   createdAt:      string;
 }
 
-// ─── Report API ───────────────────────────────────────────────────────────────
 
 export async function getMyReports(token: string): Promise<StrapiReport[]> {
   const res = await strapiRequest<{ data: StrapiReport[] }>(
@@ -682,9 +663,7 @@ export async function createReport(
   return res.data;
 }
 
-// Fetch all users (for report User dropdown - public profiles)
 export async function getAllUsers(token: string): Promise<StrapiUser[]> {
-  // /api/users returns a plain array (not wrapped in data:{})
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337"}/api/users?fields[0]=id&fields[1]=username&fields[2]=email&fields[3]=fullName&fields[4]=blocked`,
     { headers: { Authorization: `Bearer ${token}` } }
@@ -693,7 +672,6 @@ export async function getAllUsers(token: string): Promise<StrapiUser[]> {
   return res.json() as Promise<StrapiUser[]>;
 }
 
-// ─── CMS Content Types ────────────────────────────────────────────────────────
 
 export interface CmsFaqItem      { question: string; answer: string; }
 export interface CmsTeamMember   { name: string; role: string; desc: string; image?: { url: string } | null; }
@@ -723,16 +701,12 @@ export interface CmsPoliciesPage {
   community_guidelines: unknown;
 }
 
-// ─── CMS API (public - no token needed) ──────────────────────────────────────
 
-// Helper for public CMS fetches - no auth, no-store cache for fresh content.
-async function cmsGet(endpoint: string): Promise<any> {
+async function cmsGet(endpoint: string): Promise<unknown> {
   const url = `${STRAPI_URL}${endpoint}`;
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`CMS fetch failed: ${res.status}`);
   const json = await res.json();
-  // Strapi v5 single types return flat { id, ..fields } NOT { data: { ... } }
-  // But with populate, nested relations come under their field names directly.
   return json.data ?? json;
 }
 
@@ -778,9 +752,7 @@ export async function getHomePage(): Promise<CmsHomePage | null> {
   } catch { return null; }
 }
 
-// ─── Skill Category ───────────────────────────────────────────────────────────
 
-// Fetch all skill categories - used in add/edit skill form and browse filter.
 export async function getSkillCategories(token: string): Promise<StrapiSkillCategory[]> {
   const res = await strapiRequest<{ data: StrapiSkillCategory[] }>(
     "/api/skill-categories?populate[image]=true",
@@ -790,11 +762,7 @@ export async function getSkillCategories(token: string): Promise<StrapiSkillCate
   return res.data ?? [];
 }
 
-// ─── Default Avatar ───────────────────────────────────────────────────────────
 
-// Fetches the default profile image URL from Strapi media library.
-// Looks for a file named "noProfileImage.png" uploaded to Strapi.
-// Returns the absolute URL or null if not found.
 export async function getDefaultAvatarUrl(): Promise<string | null> {
   try {
     const res = await fetch(
@@ -803,7 +771,6 @@ export async function getDefaultAvatarUrl(): Promise<string | null> {
     );
     if (!res.ok) return null;
     const files = await res.json();
-    // files is a plain array from Strapi upload plugin
     const file = Array.isArray(files) ? files[0] : files?.data?.[0];
     if (!file?.url) return null;
     return file.url.startsWith("http") ? file.url : `${STRAPI_URL}${file.url}`;

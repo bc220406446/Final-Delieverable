@@ -30,26 +30,26 @@ export default factories.createCoreController('api::exchange.exchange', () => ({
     });
     return ctx.send({ data: all });
   },
+  /*
+  PATCH /api/exchanges/:id/confirm
 
-  // PATCH /api/exchanges/:id/confirm
-  //
-  // Each user has TWO possible actions depending on context:
-  //   action=deliver  → mark MY skill as delivered to the other person
-  //   action=receive  → confirm I received the other person's skill
-  //
-  // skill_a = requester's skill (User A delivers to User B)
-  // skill_b = provider's skill  (User B delivers to User A)
-  //
-  //   Requester (User A):
-  //     deliver → sets skill_a_delivered = true
-  //     receive → sets skill_b_received  = true  (only after skill_b_delivered)
-  //
-  //   Provider (User B):
-  //     deliver → sets skill_b_delivered = true
-  //     receive → sets skill_a_received  = true  (only after skill_a_delivered)
-  //
-  // Completed when: skill_a_delivered + skill_a_received + skill_b_delivered + skill_b_received
-  //
+  Each user has TWO possible actions depending on context:
+    action=deliver  → mark MY skill as delivered to the other person
+    action=receive  → confirm I received the other person's skill
+
+  skill_a = requester's skill (User A delivers to User B)
+  skill_b = provider's skill  (User B delivers to User A)
+
+    Requester (User A):
+      deliver → sets skill_a_delivered = true
+      receive → sets skill_b_received  = true  (only after skill_b_delivered)
+  
+    Provider (User B):
+      deliver → sets skill_b_delivered = true
+      receive → sets skill_a_received  = true  (only after skill_a_delivered)
+  
+  Completed when: skill_a_delivered + skill_a_received + skill_b_delivered + skill_b_received
+    */
   async confirm(ctx: any) {
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized();

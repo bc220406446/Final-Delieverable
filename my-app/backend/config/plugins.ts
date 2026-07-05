@@ -1,6 +1,6 @@
 export default ({ env }: { env: (key: string, fallback?: string) => string }) => ({
 
-  // ─── Email via Gmail SMTP ──────────────────────────────────────────────────
+  // Email via Gmail SMTP 
   email: {
     config: {
       provider: 'nodemailer',
@@ -20,7 +20,7 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
     },
   },
 
-  // ─── Cloudinary Upload ────────────────────────────────────────────────────
+  // Cloudinary Upload 
   upload: {
     config: {
       provider: 'cloudinary',
@@ -36,11 +36,10 @@ export default ({ env }: { env: (key: string, fallback?: string) => string }) =>
     },
   },
 
-  // ─── Users & Permissions ───────────────────────────────────────────────────
+  //  Users & Permissions 
   'users-permissions': {
     config: {
       jwt: {
-        // ✅ Updated (optional but safer format)
         expiresIn: '7d',
       },
       emailConfirmation: false,

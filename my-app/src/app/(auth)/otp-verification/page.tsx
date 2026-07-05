@@ -5,46 +5,27 @@ import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect, JSX } from "react";
 import { verifyOtp, resendOtp, getMe } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-
-interface Message { type: "error" | "success"; text: string }
-
-function MessageBanner({ message }: { message: Message | null }): JSX.Element | null {
-  if (!message) return null;
-  return (
-    <div className={`mb-5 rounded-xl border px-4 py-3 text-sm ${
-      message.type === "error"
-        ? "bg-red-50 border-red-200 text-red-700"
-        : "bg-green-50 border-green-200 text-green-700"
-    }`} role="alert">
-      {message.text}
-    </div>
-  );
-}
+import MessageBanner, { FormMessage } from "@/app/components/shared/MessageBanner";
 
 export default function OtpVerificationPage(): JSX.Element {
   const router          = useRouter();
   const { setAuthData } = useAuth();
 
   const [otp,          setOtp]          = useState<string[]>(["", "", "", "", "", ""]);
-  const [message,      setMessage]      = useState<Message | null>(null);
+  const [message,      setMessage]      = useState<FormMessage | null>(null);
   const [loading,      setLoading]      = useState<boolean>(false);
   const [resending,    setResending]    = useState<boolean>(false);
   const [countdown,    setCountdown]    = useState<number>(60);
-  // ── FIX: pendingEmail is state, populated in useEffect after mount ──────────
-  // Reading sessionStorage directly at render time causes a server/client
-  // mismatch (hydration error) because the server always gets "" while the
-  // client gets the stored email. Moving it into useEffect fixes this.
+  // Read sessionStorage after mount so server and client renders stay aligned.
   const [pendingEmail, setPendingEmail] = useState<string>("");
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Runs only on the client after mount - safe to read sessionStorage here.
   useEffect(() => {
     const stored = sessionStorage.getItem("pendingEmail") ?? "";
     setPendingEmail(stored);
   }, []);
 
-  // Countdown timer for resend cooldown.
   useEffect(() => {
     if (countdown <= 0) return;
     const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
@@ -92,12 +73,11 @@ export default function OtpVerificationPage(): JSX.Element {
     setLoading(true);
     try {
       const { jwt, user } = await verifyOtp(pendingEmail, code);
-      // Fetch full user with profileImage populated before saving to context
       const fullUser = await getMe(jwt);
       await setAuthData(jwt, fullUser ?? user);
       sessionStorage.removeItem("pendingEmail");
-      setMessage({ type: "success", text: "Email verified! Redirecting to dashboard…" });
-      setTimeout(() => router.push("/dashboard/user"), 1000);
+      setMessage({ type: "success", text: "Email verified! Redirecting to dashboard..." });
+      setTimeout(() => router.push("/user"), 1000);
     } catch (err) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Invalid code. Please try again." });
       setLoading(false);
@@ -165,7 +145,7 @@ export default function OtpVerificationPage(): JSX.Element {
 
           <button type="submit" disabled={loading}
             className="w-full py-2.5 rounded-xl text-white text-sm font-semibold bg-green-600 hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed">
-            {loading ? "Verifying…" : "Verify Code"}
+            {loading ? "Verifying..." : "Verify Code"}
           </button>
 
           <div className="flex items-center justify-between text-xs font-semibold">
@@ -176,7 +156,7 @@ export default function OtpVerificationPage(): JSX.Element {
               disabled={resending || countdown > 0}
               className="text-green-700 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {resending ? "Sending…" : countdown > 0 ? `Resend (${countdown}s)` : "Resend Code"}
+              {resending ? "Sending..." : countdown > 0 ? `Resend (${countdown}s)` : "Resend Code"}
             </button>
           </div>
         </form>

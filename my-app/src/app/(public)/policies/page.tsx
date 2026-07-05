@@ -4,6 +4,19 @@ import { useState, useEffect, JSX } from "react";
 import { getPoliciesPage, CmsPoliciesPage } from "@/lib/api";
 
 type TabKey = "privacy" | "terms" | "exchange" | "community";
+type RichTextChild = {
+  text?: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  code?: boolean;
+};
+type RichTextBlock = {
+  type?: string;
+  level?: number;
+  format?: "ordered" | "unordered";
+  children?: (RichTextChild | RichTextBlock)[];
+};
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "privacy",   label: "Privacy Policy"      },
@@ -12,8 +25,8 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "community", label: "Community Guidelines" },
 ];
 
-function renderInline(children: any[]): JSX.Element[] {
-  return (children ?? []).map((c: any, j: number) => {
+function renderInline(children: RichTextChild[] = []): JSX.Element[] {
+  return children.map((c, j) => {
     const text = c.text ?? "";
     if (c.bold && c.italic) return <strong key={j}><em>{text}</em></strong>;
     if (c.bold)             return <strong key={j}>{text}</strong>;
@@ -24,17 +37,17 @@ function renderInline(children: any[]): JSX.Element[] {
   });
 }
 
-function renderBlocks(blocks: any): JSX.Element {
+function renderBlocks(blocks: unknown): JSX.Element {
   if (!Array.isArray(blocks) || blocks.length === 0) {
     return <p className="text-sm text-gray-400 italic">No content added yet.</p>;
   }
   return (
     <div className="flex flex-col gap-3">
-      {blocks.map((block: any, i: number) => {
+      {(blocks as RichTextBlock[]).map((block, i) => {
         const type = block.type;
 
         if (type === "paragraph") {
-          return <p key={i} className="text-sm text-gray-600 leading-relaxed">{renderInline(block.children)}</p>;
+          return <p key={i} className="text-sm text-gray-600 leading-relaxed">{renderInline(block.children as RichTextChild[])}</p>;
         }
         if (type === "heading") {
           const level = block.level ?? 3;
@@ -42,15 +55,15 @@ function renderBlocks(blocks: any): JSX.Element {
             ? "mt-8 text-[11px] font-extrabold tracking-wide uppercase text-green-700"
             : "mt-6 text-sm font-extrabold text-gray-800";
           const Tag = `h${level}` as keyof JSX.IntrinsicElements;
-          return <Tag key={i} className={cls}>{renderInline(block.children)}</Tag>;
+          return <Tag key={i} className={cls}>{renderInline(block.children as RichTextChild[])}</Tag>;
         }
         if (type === "list") {
           const ordered = block.format === "ordered";
           const ListTag = ordered ? "ol" : "ul";
           return (
             <ListTag key={i} className={`text-sm text-gray-600 pl-5 space-y-1.5 ${ordered ? "list-decimal" : "list-disc"}`}>
-              {(block.children ?? []).map((item: any, j: number) => (
-                <li key={j}>{renderInline(item.children)}</li>
+              {(block.children ?? []).map((item, j) => (
+                <li key={j}>{renderInline((item as RichTextBlock).children as RichTextChild[])}</li>
               ))}
             </ListTag>
           );
@@ -58,7 +71,7 @@ function renderBlocks(blocks: any): JSX.Element {
         if (type === "quote") {
           return (
             <div key={i} className="mt-4 bg-green-50 border-l-4 border-green-600 rounded-xl p-4">
-              <p className="text-sm text-gray-700 leading-relaxed">{renderInline(block.children)}</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{renderInline(block.children as RichTextChild[])}</p>
             </div>
           );
         }
@@ -79,7 +92,7 @@ function TabButton({ label, isActive, onClick }: { label: string; isActive: bool
   );
 }
 
-function PolicyPanel({ title, content, lastUpdated }: { title: string; content: any; lastUpdated: string }): JSX.Element {
+function PolicyPanel({ title, content, lastUpdated }: { title: string; content: unknown; lastUpdated: string }): JSX.Element {
   return (
     <section className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-8">
       <h2 className="text-xl md:text-2xl font-extrabold text-green-900 pb-3 border-b border-gray-100">{title}</h2>
@@ -106,7 +119,7 @@ export default function PoliciesPage(): JSX.Element {
   if (loading) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-sm text-gray-400">Loading…</p>
+        <p className="text-sm text-gray-400">Loading...</p>
       </main>
     );
   }
@@ -119,7 +132,7 @@ export default function PoliciesPage(): JSX.Element {
     );
   }
 
-  const contentMap: Record<TabKey, { title: string; content: any }> = {
+  const contentMap: Record<TabKey, { title: string; content: unknown }> = {
     privacy:   { title: "Privacy Policy",        content: data.privacy_policy        },
     terms:     { title: "Terms of Service",       content: data.terms_of_service      },
     exchange:  { title: "Skills Exchange Policy", content: data.exchange_policy       },

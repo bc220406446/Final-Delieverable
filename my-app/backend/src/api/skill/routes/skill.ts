@@ -4,7 +4,7 @@
 
 export default {
   routes: [
-    // ── Custom routes ────────────────────────────────────────────────────────
+    // Custom routes 
     {
       method:  'GET',
       path:    '/skills/my-skills',
@@ -24,7 +24,7 @@ export default {
       config:  { policies: [], middlewares: [] },
     },
 
-    // ── Core CRUD routes (replaces createCoreRouter) ─────────────────────────
+    // Core CRUD routes (replaces createCoreRouter)
     {
       method:  'GET',
       path:    '/skills',

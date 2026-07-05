@@ -1,10 +1,9 @@
 const OTP_TTL_MS = 10 * 60 * 1000;
 const es = () => strapi.entityService as any;
 
-// ── Simple in-memory rate limiters ───────────────────────────────────────────
+/* Simple in-memory rate limiters */
 // Tracks failed verify attempts per email to block brute-force attacks.
 // Tracks OTP send requests per email to prevent email spam.
-// (In a multi-instance deployment, replace with a shared cache like Redis.)
 
 const MAX_VERIFY_ATTEMPTS  = 5;
 const LOCK_DURATION_MS     = 15 * 60 * 1000; // 15 minutes
@@ -17,8 +16,7 @@ interface SendRecord    { count: number; resetAt: number }
 const verifyAttempts = new Map<string, AttemptRecord>();
 const sendRates      = new Map<string, SendRecord>();
 
-// Finds user by ID first (preferred - no race condition), falls back to
-// email lookup with retries (used for resend flow).
+// Finds user by ID first (preferred - no race condition), falls back to email lookup with retries (used for resend flow).
 async function findUser(userId?: number, email?: string): Promise<any | null> {
   if (userId) {
     try {

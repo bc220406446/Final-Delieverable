@@ -4,12 +4,10 @@ import Link from "next/link";
 import { useEffect, JSX } from "react";
 import { useAuth } from "@/context/AuthContext";
 
-// Renders the logout confirmation page and performs client-side sign-out cleanup.
 export default function LogoutPage(): JSX.Element {
   const { logout } = useAuth();
 
-  // Calls context logout (clears localStorage + resets global auth state)
-  // and prevents back-navigation to authenticated screens.
+  // Calls context logout (clears localStorage + resets global auth state) and prevents back-navigation to authenticated screens.
   useEffect(() => {
     logout();
 
@@ -27,7 +25,6 @@ export default function LogoutPage(): JSX.Element {
     <main className="min-h-[calc(100vh-200px)] flex items-center justify-center px-5 py-16 bg-gray-50">
       <section className="bg-white rounded-2xl shadow-sm border border-gray-100 max-w-md w-full p-6 md:p-8 text-center">
 
-        {/* Success icon section indicating logout completion. */}
         <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-5">
           <svg
             className="w-10 h-10 text-green-600"
@@ -44,7 +41,6 @@ export default function LogoutPage(): JSX.Element {
           </svg>
         </div>
 
-        {/* Confirmation text related to the completed sign-out action. */}
         <h1 className="text-2xl font-extrabold text-green-900">Signed Out</h1>
         <p className="mt-2 text-sm text-gray-500 leading-relaxed">
           You have successfully signed out of your account.
@@ -52,7 +48,6 @@ export default function LogoutPage(): JSX.Element {
           We hope to see you again soon!
         </p>
 
-        {/* Follow-up auth actions for returning users or new registration. */}
         <div className="mt-7 flex flex-col gap-3">
           <Link
             href="/login"

@@ -1,5 +1,5 @@
 // Extends users-permissions plugin:
-// 1. Blocks Strapi's default confirmation email (OTP lifecycle handles it)
+// 1. Blocks Strapi's default confirmation email (Index.ts handles it)
 // 2. Overrides sendResetPasswordEmail to send a proper email with a real link
 
 export default (plugin: any) => {
@@ -8,16 +8,12 @@ export default (plugin: any) => {
   plugin.services.user = ({ strapi: strapiInstance }: any) => {
     const userService = originalUserService({ strapi: strapiInstance });
 
-    // ── Block default confirmation email ──────────────────────────────────────
+    // Block default confirmation email 
     userService.sendConfirmationEmail = async (user: any) => {
       strapiInstance.log.info(`[CSEP] Blocked default confirmation email for ${user?.email}`);
     };
 
-    // ── Override reset password email ─────────────────────────────────────────
-    // Strapi calls this method internally when /auth/forgot-password is hit.
-    // We override it to send our own email with a proper frontend URL.
-    // The resetToken parameter is the raw code Strapi generates - we embed it
-    // directly in the link so /reset-password?code=... works correctly.
+    // Override reset password email 
     userService.sendResetPasswordEmail = async (user: any, resetToken: string) => {
       strapiInstance.log.info(`[CSEP] sendResetPasswordEmail called for ${user?.email}`);
 
