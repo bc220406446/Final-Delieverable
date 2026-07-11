@@ -1,5 +1,7 @@
+// Default number of records shown on paginated user pages.
 export const DEFAULT_PAGE_SIZE = 6;
 
+// Common pagination details used by the Pagination component.
 export interface PaginationState {
   page: number;
   pageSize: number;
@@ -9,15 +11,18 @@ export interface PaginationState {
   endItem: number;
 }
 
+// Converts total records into the number of pages required.
 export function getPageCount(total: number, pageSize: number): number {
   if (total <= 0) return 1;
   return Math.max(1, Math.ceil(total / pageSize));
 }
 
+// Keeps the requested page inside the valid range.
 export function clampPage(page: number, total: number, pageSize: number): number {
   return Math.min(Math.max(page, 1), getPageCount(total, pageSize));
 }
 
+// Returns only the records for the current page plus display metadata.
 export function paginateItems<T>(
   items: T[],
   page: number,

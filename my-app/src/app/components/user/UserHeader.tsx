@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname } from "next/navigation";
 
+// Same dashboard navigation shown inside the mobile drawer.
 const NAV_LINKS = [
   { label: "Dashboard",         href: "/user" },
   { label: "My Profile",        href: "/user/my-profile" },
@@ -18,11 +19,13 @@ const NAV_LINKS = [
   { label: "Report Abuse",      href: "/user/report-abuse" },
 ];
 
+// Top header for authenticated user dashboard pages.
 export default function UserHeader() {
   const { user, logout } = useAuth();
   const userName = user?.fullName || user?.username || "User";
   const router = useRouter();
 
+  // Clear auth data and route to the logout confirmation page.
   async function handleLogout() {
     await logout();
     router.push("/logout");
@@ -31,6 +34,7 @@ export default function UserHeader() {
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
+  // Close mobile menu when the user clicks outside the drawer.
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -41,6 +45,7 @@ export default function UserHeader() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [menuOpen]);
 
+  // Close mobile menu when the user presses Escape.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") setMenuOpen(false);
@@ -49,6 +54,7 @@ export default function UserHeader() {
     return () => document.removeEventListener("keydown", handleKey);
   }, [menuOpen]);
 
+  // Prevent background scrolling while the drawer is open.
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -108,11 +114,13 @@ export default function UserHeader() {
 
       {menuOpen && (
         <>
+          {/* Overlay closes the mobile drawer when tapped. */}
           <div
             className="fixed inset-0 bg-black/30 z-40 lg:hidden"
             onClick={() => setMenuOpen(false)}
           />
 
+          {/* Mobile drawer contains dashboard navigation and account actions. */}
           <div
             ref={menuRef}
             className="fixed top-0 right-0 h-full w-72 bg-white z-50 shadow-2xl flex flex-col lg:hidden"
@@ -138,6 +146,7 @@ export default function UserHeader() {
             <nav className="flex-1 overflow-y-auto px-3 py-4">
               <ul className="flex flex-col gap-1">
                 {NAV_LINKS.map(({ label, href }) => {
+                  // Highlight the current route, including nested dashboard pages.
                   const active =
                     pathname === href ||
                     (href !== "/user" && pathname.startsWith(href));

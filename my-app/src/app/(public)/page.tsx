@@ -8,11 +8,13 @@ import { useAuth } from "@/context/AuthContext";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
+// Converts Strapi relative media paths into full URLs that Next Image can load.
 function resolveUrl(url?: string | null): string | null {
   if (!url) return null;
   return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
 }
 
+// Shared section title so every homepage block keeps the same heading style.
 function SectionHeading({ children }: { children: React.ReactNode }): JSX.Element {
   return (
     <h2 className="text-2xl md:text-3xl font-extrabold text-center text-green-900 mb-10">
@@ -21,6 +23,7 @@ function SectionHeading({ children }: { children: React.ReactNode }): JSX.Elemen
   );
 }
 
+// Displays one CMS category with its image, title, and short description.
 function CategoryCard({ title, desc, image }: CmsCategoryCard): JSX.Element {
   const imgUrl = resolveUrl(image?.url) ?? "";
   return (
@@ -37,6 +40,7 @@ function CategoryCard({ title, desc, image }: CmsCategoryCard): JSX.Element {
   );
 }
 
+// Displays one step from the "How It Works" section.
 function StepCard({ num, title, desc }: CmsStepCard): JSX.Element {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 text-center hover:shadow-lg transition">
@@ -49,6 +53,7 @@ function StepCard({ num, title, desc }: CmsStepCard): JSX.Element {
   );
 }
 
+// Displays one team member profile from CMS content.
 function TeamCard({ name, role, desc, image }: CmsTeamMember): JSX.Element {
   const imgUrl = resolveUrl(image?.url) ?? "";
   return (
@@ -70,6 +75,7 @@ export default function HomePage(): JSX.Element {
   const [data, setData] = useState<CmsHomePage | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Load all homepage content from the CMS once when the page first mounts.
   useEffect(() => {
     getHomePage()
       .then((d) => setData(d))
@@ -77,6 +83,7 @@ export default function HomePage(): JSX.Element {
       .finally(() => setLoading(false));
   }, []);
 
+  // While the CMS request is still running, show a simple loading state.
   if (loading) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center">
@@ -85,6 +92,7 @@ export default function HomePage(): JSX.Element {
     );
   }
 
+  // If the CMS request fails or returns no content, show a user-friendly fallback.
   if (!data) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center">
@@ -98,6 +106,7 @@ export default function HomePage(): JSX.Element {
   return (
     <main className="bg-gray-50 text-gray-800">
 
+      {/* Hero section: main message, call-to-action, and featured image. */}
       <section className="bg-linear-to-br from-green-700 to-green-500 text-white py-20 px-5">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div>
@@ -120,6 +129,7 @@ export default function HomePage(): JSX.Element {
         </div>
       </section>
 
+      {/* Skill categories are only rendered when the CMS provides category cards. */}
       {data.categories?.length > 0 && (
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-5">
@@ -131,6 +141,7 @@ export default function HomePage(): JSX.Element {
         </section>
       )}
 
+      {/* Process steps are only rendered when the CMS provides step cards. */}
       {data.steps?.length > 0 && (
         <section className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-5">
@@ -142,6 +153,7 @@ export default function HomePage(): JSX.Element {
         </section>
       )}
 
+      {/* Team members are only rendered when the CMS provides profile cards. */}
       {data.team_members?.length > 0 && (
         <section className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-5">

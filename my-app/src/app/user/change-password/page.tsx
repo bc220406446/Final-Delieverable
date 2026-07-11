@@ -11,6 +11,7 @@ import PasswordMatch from "@/app/components/shared/PasswordMatch";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
+// Shared input class builder for consistent account form styling.
 function inputCls(): string {
   return "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500";
 }
@@ -18,14 +19,17 @@ function inputCls(): string {
 export default function ChangePasswordPage(): JSX.Element {
   const { token } = useAuth();
 
+  // Form state for the current password, new password, confirmation, and feedback message.
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword,     setNewPassword]     = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message,         setMessage]         = useState<FormMessage | null>(null);
   const [loading,         setLoading]         = useState(false);
 
+  // Recalculate password strength only when the new password changes.
   const strength = useMemo(() => getPasswordStrength(newPassword), [newPassword]);
 
+  // Validates password rules, then submits the change-password request to Strapi.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     setMessage(null);
@@ -38,6 +42,7 @@ export default function ChangePasswordPage(): JSX.Element {
 
     setLoading(true);
     try {
+      // Send the validated password change request with the user's auth token.
       const res = await fetch(`${STRAPI_URL}/api/auth/change-password`, {
         method:  "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -47,6 +52,7 @@ export default function ChangePasswordPage(): JSX.Element {
       if (!res.ok) throw new Error(data?.error?.message ?? "Failed to change password.");
 
       setMessage({ type: "success", text: "Password changed successfully!" });
+      // Clear password fields after a successful update.
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
     } catch (err) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
@@ -66,6 +72,7 @@ export default function ChangePasswordPage(): JSX.Element {
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 md:p-8">
           <MessageBanner message={message} />
 
+          {/* Change-password form requires current password plus matching new-password fields. */}
           <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
 
             <div>

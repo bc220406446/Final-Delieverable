@@ -1,10 +1,12 @@
 import Link from "next/link";
 
+// Footer shown at the bottom of authenticated dashboard pages.
 export default function UserFooter() {
   return (
     <footer className="mt-10 border-t border-gray-200 pt-6 pb-8 text-sm text-gray-600 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
       <div>© 2025 Community Skills Exchange. All rights reserved.</div>
 
+      {/* Quick links back to public informational pages. */}
       <div className="flex gap-5">
         <Link className="hover:text-green-700" href="/about">
           About

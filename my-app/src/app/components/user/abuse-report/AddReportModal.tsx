@@ -14,12 +14,14 @@ interface Props {
   onClose:  () => void;
 }
 
+// Shared input/select/textarea class builder with error styling.
 function fieldCls(hasError: boolean): string {
   return `w-full rounded-xl border px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white ${
     hasError ? "border-red-400" : "border-gray-200"
   }`;
 }
 
+// Small label helper for report form fields.
 function FieldLabel({ children }: { children: React.ReactNode }): JSX.Element {
   return (
     <label className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-1.5">
@@ -28,10 +30,12 @@ function FieldLabel({ children }: { children: React.ReactNode }): JSX.Element {
   );
 }
 
+// Shows validation feedback only when a field has an error.
 function FieldError({ msg }: { msg?: string }): JSX.Element | null {
   return msg ? <p className="mt-1 text-xs text-red-500">{msg}</p> : null;
 }
 
+// Modal for submitting abuse reports about users, skills, or exchanges.
 export default function AddReportModal({ onSaved, onClose }: Props): JSX.Element {
   const { token, user } = useAuth();
 
@@ -50,12 +54,14 @@ export default function AddReportModal({ onSaved, onClose }: Props): JSX.Element
   const [exchanges, setExchanges] = useState<StrapiExchange[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
 
+  // Allow Escape key to close the modal.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  // Load the correct target options whenever the selected report type changes.
   useEffect(() => {
     if (!type || !token) return;
     setTargetId(""); setTargetLabel("");
@@ -81,6 +87,7 @@ export default function AddReportModal({ onSaved, onClose }: Props): JSX.Element
       .finally(() => setLoadingOptions(false));
   }, [type, token]);
 
+  // Selection helpers store both the backend id and readable label for the report.
   function selectUser(u: StrapiUser) {
     setTargetId(u.email);
     setTargetLabel(u.fullName || u.username || u.email);
@@ -101,6 +108,7 @@ export default function AddReportModal({ onSaved, onClose }: Props): JSX.Element
     setErrors((p) => ({ ...p, target: "" }));
   }
 
+  // Validate required fields and submit the report to the parent page/API flow.
   async function handleSubmit() {
     const e: Record<string, string> = {};
     if (!type)              e.type        = "Please select a report type.";
@@ -126,6 +134,7 @@ export default function AddReportModal({ onSaved, onClose }: Props): JSX.Element
     }
   }
 
+  // Render the target selector that matches the selected report type.
   function renderTargetSelector(): JSX.Element {
     if (!type) return <></>;
 
@@ -219,12 +228,14 @@ export default function AddReportModal({ onSaved, onClose }: Props): JSX.Element
 
           <div className="px-6 py-5 flex flex-col gap-4">
 
+            {/* API-level submit errors appear above the form fields. */}
             {apiError && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {apiError}
               </div>
             )}
 
+            {/* Choosing a report type controls which target selector is loaded. */}
             <div>
               <FieldLabel>Report Type</FieldLabel>
               <select className={fieldCls(!!errors.type)} value={type}

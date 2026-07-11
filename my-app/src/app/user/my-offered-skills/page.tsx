@@ -18,12 +18,14 @@ import { paginateItems } from "@/lib/pagination";
 
 type SkillStatus = "approved" | "pending" | "rejected";
 
+// Tabs match the admin-review states returned by Strapi.
 const TABS: { key: SkillStatus; label: string }[] = [
   { key: "approved", label: "Approved" },
   { key: "pending",  label: "Pending"  },
   { key: "rejected", label: "Rejected" },
 ];
 
+// Compact metadata block for each offered skill.
 function Pill({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
@@ -33,6 +35,7 @@ function Pill({ label, value }: { label: string; value: string }): JSX.Element {
   );
 }
 
+// Resolve the best available Strapi media URL for a skill image.
 function resolveImageUrl(skill: StrapiSkill): string | null {
   return resolveStrapiMediaUrl(skill.image);
 }
@@ -50,6 +53,7 @@ export default function MyOfferedSkillsPage(): JSX.Element {
   const [confirmDel,  setConfirmDel]  = useState<number | null>(null);
   const [page,        setPage]        = useState(1);
 
+  // Load all skills owned by the current user.
   const fetchSkills = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -66,24 +70,29 @@ export default function MyOfferedSkillsPage(): JSX.Element {
 
   useEffect(() => { fetchSkills(); }, [fetchSkills]);
 
+  // Show only skills, matching the active approval-status tab.
   const filtered = useMemo(
     () => skills.filter((s) => s.state === tab),
     [skills, tab]
   );
 
+  // Reset pagination when switching between status tabs.
   useEffect(() => { setPage(1); }, [tab]);
 
+  // Paginate the filtered skill list for the current page.
   const { items: pagedSkills, state: pagination } = useMemo(
     () => paginateItems(filtered, page),
     [filtered, page]
   );
 
+  // Counts are shown beside each status tab.
   const counts = useMemo(() => ({
     approved: skills.filter((s) => s.state === "approved").length,
     pending:  skills.filter((s) => s.state === "pending").length,
     rejected: skills.filter((s) => s.state === "rejected").length,
   }), [skills]);
 
+  // Creates a new skill and moves the skill in Pending Tab because admin review is required.
   async function handleAddSkill(payload: SkillPayload): Promise<void> {
     if (!token || !user) return;
     setActionId(-1);
@@ -113,6 +122,7 @@ export default function MyOfferedSkillsPage(): JSX.Element {
     }
   }
 
+  // Updates an existing skill and sends it back to Pending review.
   async function handleEditSkill(id: string, payload: SkillPayload): Promise<void> {
     if (!token) return;
     const numId = Number(id);
@@ -143,6 +153,7 @@ export default function MyOfferedSkillsPage(): JSX.Element {
     }
   }
 
+  // Deletes a skill after the user confirms the remove action.
   async function handleDelete(id: number): Promise<void> {
     if (!token) return;
     setActionId(id);
@@ -157,6 +168,7 @@ export default function MyOfferedSkillsPage(): JSX.Element {
     }
   }
 
+  // Convert a Strapi skill into the edit modal's expected shape.
   function openEdit(skill: StrapiSkill): void {
     setEditSkill({
       id:           String(skill.id),
@@ -191,6 +203,7 @@ export default function MyOfferedSkillsPage(): JSX.Element {
         </button>
       </div>
 
+      {/* Status tabs, group the user's skills by admin-review state. */}
       <section className="mt-6 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
 
         <div className="flex flex-wrap gap-2 border-b border-gray-100 p-3">
@@ -328,6 +341,7 @@ export default function MyOfferedSkillsPage(): JSX.Element {
         />
       </section>
 
+      {/* Add/edit modals are mounted only while active. */}
       {addOpen && (
         <AddSkillModal onSave={handleAddSkill} onClose={() => setAddOpen(false)} />
       )}

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { JSX } from "react";
 
+// Header used on authentication pages, with brand link and a shortcut back home.
 export default function AuthHeader(): JSX.Element {
   return (
     <header className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
       <nav className="max-w-7xl mx-auto flex justify-between items-center px-5 py-3.5">
 
+        {/* Brand link returns users to the public homepage. */}
         <Link
           href="/"
           className="flex items-center gap-2 text-base font-extrabold text-green-700"
@@ -19,6 +21,7 @@ export default function AuthHeader(): JSX.Element {
           <span className="text-base font-extrabold text-green-700">Community Skills Exchange</span>
         </Link>
 
+        {/* Compact home button for users who want to leave the auth flow. */}
         <Link
           href="/"
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold text-sm px-4 py-2.5 transition"

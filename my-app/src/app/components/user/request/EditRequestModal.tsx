@@ -13,6 +13,7 @@ export interface EditRequestDraft {
   message:             string;
 }
 
+// Request data needed to reopen an existing pending request for editing.
 export interface RequestForEdit {
   id:                    number;
   requested_skill_title: string;
@@ -30,6 +31,7 @@ interface Props {
   onClose: () => void;
 }
 
+// Shared input/select class builder for request editing fields.
 function inputCls(): string {
   return [
     "w-full rounded-xl border border-gray-200 bg-white",
@@ -39,10 +41,12 @@ function inputCls(): string {
   ].join(" ");
 }
 
+// Resolve an offered skill image URL for the selectable skill list.
 function resolveImage(skill: StrapiSkill): string | null {
   return resolveStrapiMediaUrl(skill.image);
 }
 
+// Modal for editing a pending sent exchange request.
 export default function EditRequestModal({ request, onSave, onClose }: Props): JSX.Element {
   const { token } = useAuth();
 
@@ -59,6 +63,7 @@ export default function EditRequestModal({ request, onSave, onClose }: Props): J
   const [error,   setError]   = useState<string | null>(null);
   const [saving,  setSaving]  = useState(false);
 
+  // Load approved skills and preselect the ones already attached to this request.
   useEffect(() => {
     if (!token) return;
     getMySkills(token)
@@ -75,12 +80,14 @@ export default function EditRequestModal({ request, onSave, onClose }: Props): J
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  // Allow Escape key to close the modal.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  // Toggle an offered skill in the selected set.
   function toggleSkill(id: number) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -89,6 +96,7 @@ export default function EditRequestModal({ request, onSave, onClose }: Props): J
     });
   }
 
+  // Validate edits and send the updated request draft to the parent page.
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -128,6 +136,7 @@ export default function EditRequestModal({ request, onSave, onClose }: Props): J
 
           <div className="p-6">
 
+            {/* Summary of the request target being edited. */}
             <div className="mb-5 bg-green-50 border border-green-100 rounded-xl p-4 flex flex-col gap-1">
               <p className="text-xs font-extrabold uppercase tracking-wide text-green-700 mb-1">Requesting</p>
               {[
@@ -151,6 +160,7 @@ export default function EditRequestModal({ request, onSave, onClose }: Props): J
             <form onSubmit={handleSubmit} noValidate>
               <div className="flex flex-col gap-5">
 
+                {/* User can update which approved skills they are offering. */}
                 <div>
                   <label className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-2">
                     Skills You Offer in Exchange * (select one or more)

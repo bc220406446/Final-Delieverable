@@ -18,6 +18,7 @@ interface EditProfileModalProps {
   onClose:  () => void;
 }
 
+// Modal receives current profile data and returns updated data after save.
 export default function EditProfileModal({
   profile,
   onSave,
@@ -25,6 +26,7 @@ export default function EditProfileModal({
 }: EditProfileModalProps): JSX.Element {
   const { user, token, setAuthData } = useAuth();
 
+  // Local form state mirrors current profile fields and optional new avatar.
   const [name,          setName]          = useState(profile.name);
   const [location,      setLocation]      = useState(profile.location);
   const [about,         setAbout]         = useState(profile.about);
@@ -35,12 +37,14 @@ export default function EditProfileModal({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Allow Escape key to close the modal.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  // Store the chosen avatar file and show a temporary preview.
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -48,6 +52,7 @@ export default function EditProfileModal({
     setAvatarFile(file);
   }
 
+  // Basic required-field validation before saving.
   function validate() {
     const e: typeof errors = {};
     if (!name.trim())     e.name     = "Name is required.";
@@ -55,6 +60,7 @@ export default function EditProfileModal({
     return e;
   }
 
+  // Save profile fields, optionally upload avatar, then refresh auth context.
   async function handleSave() {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
@@ -121,6 +127,7 @@ export default function EditProfileModal({
 
           <div className="px-6 py-5 flex flex-col gap-5">
 
+            {/* Avatar preview uses either the existing image or the newly selected file preview. */}
             <div className="flex flex-col items-center gap-3">
               <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-green-100 shrink-0 bg-gray-100">
                 <Image

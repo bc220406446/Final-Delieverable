@@ -11,10 +11,12 @@ interface Props {
   onClose:  () => void;
 }
 
+// Shared select class builder for the accept request form.
 function inputCls(): string {
   return "w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:ring-2 focus:ring-green-500 focus:border-green-500";
 }
 
+// Modal for accepting a received request and choosing which offered skill to accept.
 export default function AcceptRequestModal({
   requestId, requesterName, requestedSkillTitle, offeredSkillTitle, onAccept, onClose
 }: Props): JSX.Element {
@@ -22,12 +24,14 @@ export default function AcceptRequestModal({
   const [submitting,    setSubmitting]    = useState(false);
   const [error,         setError]         = useState<string | null>(null);
 
+  // Allow Escape key to close the modal.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  // Require selecting one offered skill before accepting the request.
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -55,6 +59,7 @@ export default function AcceptRequestModal({
 
           <div className="p-6">
 
+            {/* Read-only summary of the incoming request. */}
             <div className="mb-5 bg-green-50 border border-green-100 rounded-xl p-4 flex flex-col gap-1.5">
               <p className="text-xs font-extrabold uppercase tracking-wide text-green-700 mb-1">Exchange Summary</p>
               {[
@@ -78,6 +83,7 @@ export default function AcceptRequestModal({
             <form onSubmit={handleSubmit} noValidate>
               <div className="flex flex-col gap-4">
 
+                {/* Split combined offered-skill text into selectable options. */}
                 <div>
                   <label className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-1.5">
                     Select Offered Skill to Accept *

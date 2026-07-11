@@ -5,10 +5,13 @@ interface Props {
   password: string;
 }
 
+// Shows password strength score, progress bar, and missing requirements.
 export default function PasswordStrength({ password }: Props): JSX.Element | null {
   const strength = getPasswordStrength(password);
+  // Do not show validation UI before the user starts typing.
   if (!password) return null;
 
+  // Maps strength levels to bar width and color classes.
   const widthMap = {
     none: "w-0",
     weak: "w-1/4",
@@ -16,6 +19,7 @@ export default function PasswordStrength({ password }: Props): JSX.Element | nul
     strong: "w-3/4",
     "very-strong": "w-full",
   };
+  // Maps strength levels to progress bar colors.
   const colorMap = {
     none: "",
     weak: "bg-red-500",
@@ -23,6 +27,7 @@ export default function PasswordStrength({ password }: Props): JSX.Element | nul
     strong: "bg-green-500",
     "very-strong": "bg-green-600",
   };
+  // Maps strength levels to label colors.
   const labelMap = {
     none: "",
     weak: "text-red-500",
@@ -40,6 +45,7 @@ export default function PasswordStrength({ password }: Props): JSX.Element | nul
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all ${colorMap[strength.level]} ${widthMap[strength.level]}`} />
       </div>
+      {/* List unmet password requirements so the user can fix them. */}
       {strength.errors.length > 0 && (
         <ul className="flex flex-col gap-0.5">
           {strength.errors.map((error) => (

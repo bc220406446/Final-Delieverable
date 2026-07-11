@@ -11,15 +11,18 @@ import MessageBanner, { FormMessage } from "@/app/components/shared/MessageBanne
 import PasswordStrength from "@/app/components/shared/PasswordStrength";
 import PasswordMatch from "@/app/components/shared/PasswordMatch";
 
+// Shared input class builder for consistent auth form styling.
 function inputCls(): string {
   return "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500";
 }
 
+// Default message shown when the reset link does not include a usable token.
 const invalidResetMessage: FormMessage = {
   type: "error",
   text: "Invalid or missing reset link. Please request a new one.",
 };
 
+// Inner component can read search params because the page wraps it in Suspense below.
 function ResetPasswordContent(): JSX.Element {
   const router       = useRouter();
   const searchParams = useSearchParams();
@@ -31,9 +34,11 @@ function ResetPasswordContent(): JSX.Element {
   const [loading,         setLoading]         = useState(false);
   const [done,            setDone]            = useState(false);
 
+  // Validate the new password with the same shared rules used by register/change-password.
   const strength = useMemo(() => getPasswordStrength(password), [password]);
   const visibleMessage = message ?? (!code ? invalidResetMessage : null);
 
+  // Validates the reset token and password fields, then submits the new password to Strapi.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     setMessage(null);
@@ -47,7 +52,7 @@ function ResetPasswordContent(): JSX.Element {
       await resetPassword(code, password, confirmPassword);
       setDone(true);
       setMessage({ type: "success", text: "Password reset successfully! Redirecting to login..." });
-      setTimeout(() => router.push("/login"), 2000);
+      setTimeout(() => router.push("/login"), 1000);
     } catch (err) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Reset failed. The link may have expired." });
       setLoading(false);
@@ -76,6 +81,7 @@ function ResetPasswordContent(): JSX.Element {
 
             <MessageBanner message={visibleMessage} />
 
+            {/* Reset form: disabled when the URL token is missing or a reset request is in progress. */}
             <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
               <div>
                 <FormLabel htmlFor="password">New Password</FormLabel>
@@ -121,6 +127,7 @@ function ResetPasswordContent(): JSX.Element {
   );
 }
 
+// Suspense is required because useSearchParams is used inside ResetPasswordContent.
 export default function ResetPasswordPage(): JSX.Element {
   return (
     <Suspense fallback={null}>

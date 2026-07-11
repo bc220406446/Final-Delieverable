@@ -11,29 +11,70 @@ import {
 } from "@/lib/api";
 
 interface ActionCard {
-  title:   string;
-  desc:    string;
-  href:    string;
+  title: string;
+  desc: string;
+  href: string;
   variant: "primary" | "outline" | "ghost";
-  cta:     string;
+  cta: string;
 }
 
+// Cards shown in the dashboard quick-actions section.
 const ACTIONS: ActionCard[] = [
-  { title: "Edit Your Profile",    desc: "Update your personal information.",  href: "/user/my-profile",       variant: "primary",  cta: "Edit Profile"    },
-  { title: "Add an Offered Skill", desc: "Share what you can teach or do.",                    href: "/user/my-offered-skills", variant: "outline",  cta: "Add Skill"       },
-  { title: "Browse Skills",        desc: "Find a skill and book an exchange.",                 href: "/user/browse-skills",     variant: "ghost",    cta: "Browse"          },
-  { title: "Check Requests",       desc: "Request required skills or manage received requests.",                href: "/user/requests",          variant: "primary",  cta: "Open Requests"   },
-  { title: "Add Review",           desc: "Share your experience with skill provider.",       href: "/user/rating-and-reviews",variant: "outline",  cta: "Add Review"      },
-  { title: "Report Abuse",         desc: "Report any abusive behavior or content.",            href: "/user/report-abuse",      variant: "ghost",    cta: "Report Abuse"    },
+  {
+    title: "Edit Your Profile",
+    desc: "Update your personal information.",
+    href: "/user/my-profile",
+    variant: "primary",
+    cta: "Edit Profile"
+  },
+  {
+    title: "Add an Offered Skill",
+    desc: "Share what you can teach or do.",
+    href: "/user/my-offered-skills",
+    variant: "outline",
+    cta: "Add Skill"
+  },
+  {
+    title: "Browse Skills",
+    desc: "Find a skill and book an exchange.",
+    href: "/user/browse-skills",
+    variant: "ghost",
+    cta: "Browse"
+  },
+  {
+    title: "Check Requests",
+    desc: "Request required skills or manage received requests.",
+    href: "/user/requests",
+    variant: "primary",
+    cta: "Open Requests"
+  },
+  {
+    title: "Add Review",
+    desc: "Share your experience with skill provider.",
+    href: "/user/rating-and-reviews",
+    variant: "outline",
+    cta: "Add Review"
+  },
+  {
+    title: "Report Abuse",
+    desc: "Report any abusive behavior or content.",
+    href: "/user/report-abuse",
+    variant: "ghost",
+    cta: "Report Abuse"
+  },
 ];
 
+// Maps each action variant to its button styling.
 function buttonClass(v: ActionCard["variant"]): string {
   const base = "inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold transition";
-  if (v === "primary") return `${base} bg-green-600 text-white hover:bg-green-700`;
-  if (v === "outline") return `${base} border border-green-600 text-green-700 hover:bg-green-50`;
-  return                      `${base} border border-gray-200 text-gray-700 hover:bg-gray-50`;
+  if (v === "primary") 
+    return `${base} bg-green-600 text-white hover:bg-green-700`;
+  if (v === "outline") 
+    return `${base} border border-green-600 text-green-700 hover:bg-green-50`;
+  return `${base} border border-gray-200 text-gray-700 hover:bg-gray-50`;
 }
 
+// Small dashboard metric card with a loading skeleton.
 function StatCard({ label, value, loading }: { label: string; value: string | number; loading: boolean }): JSX.Element {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex flex-col gap-1">
@@ -50,12 +91,13 @@ function StatCard({ label, value, loading }: { label: string; value: string | nu
 export default function UserDashboardHomePage(): JSX.Element {
   const { user, token } = useAuth();
 
-  const [offeredSkills,    setOfferedSkills]    = useState(0);
-  const [activeExchanges,  setActiveExchanges]  = useState(0);
-  const [avgRating,        setAvgRating]        = useState<string>("-");
-  const [pendingReports,   setPendingReports]   = useState(0);
-  const [loading,          setLoading]          = useState(true);
+  const [offeredSkills, setOfferedSkills] = useState(0);
+  const [activeExchanges, setActiveExchanges] = useState(0);
+  const [avgRating, setAvgRating] = useState<string>("-");
+  const [pendingReports, setPendingReports] = useState(0);
+  const [loading, setLoading] = useState(true);
 
+  // Load dashboard summary counts from the user's skills, exchanges, reviews, and reports.
   useEffect(() => {
     if (!token) return;
 
@@ -69,13 +111,14 @@ export default function UserDashboardHomePage(): JSX.Element {
           getMyReports(token!),
         ]);
 
-        if (skills.status      === "fulfilled")
+        // Promise.allSettled lets each stat update independently even if one request fails.
+        if (skills.status === "fulfilled")
           setOfferedSkills(skills.value.filter((s) => s.state === "approved").length);
 
-        if (exchanges.status   === "fulfilled")
+        if (exchanges.status === "fulfilled")
           setActiveExchanges(exchanges.value.filter((x) => x.status === "active").length);
 
-        if (reviews.status     === "fulfilled") {
+        if (reviews.status === "fulfilled") {
           const received = reviews.value.received;
           if (received.length > 0) {
             const sum = received.reduce((acc, r) => acc + r.rating, 0);
@@ -85,7 +128,7 @@ export default function UserDashboardHomePage(): JSX.Element {
           }
         }
 
-        if (reports.status     === "fulfilled")
+        if (reports.status === "fulfilled")
           setPendingReports(reports.value.filter((r) => r.report_status === "pending").length);
 
       } finally {
@@ -98,11 +141,12 @@ export default function UserDashboardHomePage(): JSX.Element {
 
   const displayName = user?.fullName || user?.username || "User";
 
+  // Normalized stats array keeps the metric card rendering compact.
   const stats = [
-    { label: "Approved Skills",   value: offeredSkills   },
-    { label: "Active Exchanges",  value: activeExchanges },
-    { label: "Avg Rating",        value: avgRating       },
-    { label: "Pending Reports",   value: pendingReports  },
+    { label: "Approved Skills", value: offeredSkills },
+    { label: "Active Exchanges", value: activeExchanges },
+    { label: "Avg Rating", value: avgRating },
+    { label: "Pending Reports", value: pendingReports },
   ];
 
   return (
@@ -119,6 +163,7 @@ export default function UserDashboardHomePage(): JSX.Element {
         ))}
       </section>
 
+      {/* Quick actions link users to the most common dashboard workflows. */}
       <section className="mt-4 bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-6">
         <div className="text-base font-extrabold text-gray-900">Quick Actions</div>
         <p className="mt-1 text-sm text-gray-600">Jump directly to common tasks.</p>

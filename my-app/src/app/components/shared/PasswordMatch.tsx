@@ -5,7 +5,9 @@ interface Props {
   confirm: string;
 }
 
+// Shows whether the confirmation password matches the original password.
 export default function PasswordMatch({ password, confirm }: Props): JSX.Element | null {
+  // Avoid showing feedback until the user starts typing the confirmation.
   if (!confirm) return null;
 
   const match = password === confirm;

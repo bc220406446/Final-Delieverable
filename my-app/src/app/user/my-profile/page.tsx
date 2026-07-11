@@ -8,6 +8,7 @@ import EditProfileModal, { ProfileData } from "@/app/components/user/edit-profil
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
+// Converts the user's Strapi profile image into a browser-ready URL.
 function resolveAvatarUrl(profileImage: { url: string } | null | undefined): string | null {
   if (!profileImage?.url) return null;
   const url = profileImage.url;
@@ -24,6 +25,7 @@ export default function MyProfilePage(): JSX.Element {
   const displayBio = user?.bio || "";
   const displayAvatar = resolveAvatarUrl(user?.profileImage) ?? "/images/noProfileImage.png";
 
+  // Shape the current user data for the edit-profile modal.
   const profileForModal: ProfileData = {
     name: displayName,
     location: displayLocation,
@@ -31,6 +33,7 @@ export default function MyProfilePage(): JSX.Element {
     avatarSrc: displayAvatar,
   };
 
+  // Close the modal after it saves; AuthContext handles refreshed user data elsewhere.
   function handleSave() {
     setModalOpen(false);
   }
@@ -52,6 +55,7 @@ export default function MyProfilePage(): JSX.Element {
         </button>
       </div>
 
+      {/* Profile summary card: avatar, identity, location, and bio. */}
       <section className="mt-6 bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-6">
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-5">
@@ -113,6 +117,7 @@ export default function MyProfilePage(): JSX.Element {
         </div>
       </section>
 
+      {/* Modal is mounted only when editing to keep the page lightweight. */}
       {modalOpen && (
         <EditProfileModal
           profile={profileForModal}

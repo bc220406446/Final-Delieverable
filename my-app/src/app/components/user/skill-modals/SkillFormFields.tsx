@@ -17,6 +17,7 @@ interface Props {
   onChange:   <K extends keyof SkillFormState>(key: K, value: SkillFormState[K]) => void;
 }
 
+// Small label helper local to skill modal fields.
 function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }): JSX.Element {
   return (
     <label
@@ -28,14 +29,17 @@ function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.Re
   );
 }
 
+// Shows a validation error under a field only when one exists.
 function FieldError({ msg }: { msg?: string }): JSX.Element | null {
   if (!msg) return null;
   return <p className="mt-1 text-xs text-red-500">{msg}</p>;
 }
 
+// Shared form fields used by both AddSkillModal and EditSkillModal.
 export default function SkillFormFields({ form, errors, categories, onChange }: Props): JSX.Element {
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Store the selected image file and create a temporary preview URL.
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -47,6 +51,7 @@ export default function SkillFormFields({ form, errors, categories, onChange }: 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
+      {/* Image upload is optional, but gives the skill card a preview image. */}
       <div className="md:col-span-2">
         <FieldLabel htmlFor="m-img">Skill Image</FieldLabel>
         <div className="flex items-center gap-4">
@@ -86,6 +91,7 @@ export default function SkillFormFields({ form, errors, categories, onChange }: 
         </div>
       </div>
 
+      {/* Text/select fields update parent modal state through the shared onChange handler. */}
       <div className="md:col-span-2">
         <FieldLabel htmlFor="m-title">Skill Title</FieldLabel>
         <input

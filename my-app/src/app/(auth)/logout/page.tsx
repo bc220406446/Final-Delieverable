@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function LogoutPage(): JSX.Element {
   const { logout } = useAuth();
 
-  // Calls context logout (clears localStorage + resets global auth state) and prevents back-navigation to authenticated screens.
+  // Clears auth state and blocks simple back-navigation into authenticated screens.
   useEffect(() => {
     logout();
 
@@ -23,6 +23,7 @@ export default function LogoutPage(): JSX.Element {
 
   return (
     <main className="min-h-[calc(100vh-200px)] flex items-center justify-center px-5 py-16 bg-gray-50">
+      {/* Logout confirmation card with links back into the auth flow. */}
       <section className="bg-white rounded-2xl shadow-sm border border-gray-100 max-w-md w-full p-6 md:p-8 text-center">
 
         <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-5">

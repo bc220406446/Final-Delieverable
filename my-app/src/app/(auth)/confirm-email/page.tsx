@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { verifyOtp } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
+// Inner component reads the email/code query params and verifies the account automatically.
 function ConfirmEmailContent(): JSX.Element {
   const router          = useRouter();
   const searchParams    = useSearchParams();
@@ -13,10 +14,12 @@ function ConfirmEmailContent(): JSX.Element {
   const [status,   setStatus]   = useState<"loading" | "success" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState<string>("");
 
+  // Runs once with the confirmation link params, then redirects on successful verification.
   useEffect(() => {
     const email = searchParams.get("email");
     const code  = searchParams.get("code");
 
+    // Verifies the OTP from the email link and updates global auth state.
     async function verify() {
       if (!email || !code) {
         setStatus("error");
@@ -88,6 +91,7 @@ function ConfirmEmailContent(): JSX.Element {
   );
 }
 
+// Suspense is required because useSearchParams is used inside ConfirmEmailContent.
 export default function ConfirmEmailPage(): JSX.Element {
   return (
     <Suspense fallback={null}>

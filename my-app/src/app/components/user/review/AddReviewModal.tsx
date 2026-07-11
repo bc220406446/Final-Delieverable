@@ -9,6 +9,7 @@ interface Props {
   onClose:  () => void;
 }
 
+// Interactive five-star selector with hover preview.
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }): JSX.Element {
   const [hover, setHover] = useState(0);
   return (
@@ -30,6 +31,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
   );
 }
 
+// Modal for reviewing a completed exchange.
 export default function AddReviewModal({ onSaved, onClose }: Props): JSX.Element {
   const { token, user } = useAuth();
 
@@ -42,6 +44,7 @@ export default function AddReviewModal({ onSaved, onClose }: Props): JSX.Element
   const [errors,       setErrors]       = useState<{ exchange?: string; rating?: string; comment?: string }>({});
   const [error,        setError]        = useState<string | null>(null);
 
+  // Only completed exchanges can be reviewed.
   useEffect(() => {
     if (!token) return;
     getMyExchanges(token)
@@ -50,12 +53,14 @@ export default function AddReviewModal({ onSaved, onClose }: Props): JSX.Element
       .finally(() => setLoading(false));
   }, [token]);
 
+  // Allow Escape key to close the modal.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  // Build a readable label showing reviewed skill, partner, and exchange id.
   function exchangeLabel(x: StrapiExchange): string {
     const isRequester = x.requester_email === user?.email;
     const partner     = isRequester ? x.provider_name   : x.requester_name;
@@ -63,6 +68,7 @@ export default function AddReviewModal({ onSaved, onClose }: Props): JSX.Element
     return `${skill} - ${partner} (${x.exchange_id})`;
   }
 
+  // Validate selected exchange, rating, and comment before submitting.
   async function handleSave() {
     const e: typeof errors = {};
     if (!selectedId)      e.exchange = "Please select an exchange.";
@@ -85,6 +91,7 @@ export default function AddReviewModal({ onSaved, onClose }: Props): JSX.Element
     }
   }
 
+  // Shared class builder for review form fields.
   const fieldCls = (hasError: boolean) =>
     `w-full rounded-xl border px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white ${hasError ? "border-red-400" : "border-gray-200"}`;
 
@@ -104,10 +111,12 @@ export default function AddReviewModal({ onSaved, onClose }: Props): JSX.Element
 
           <div className="px-6 py-5 flex flex-col gap-4">
 
+            {/* API-level submit errors appear above the form fields. */}
             {error && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
             )}
 
+            {/* User must choose a completed exchange before reviewing it. */}
             <div>
               <label className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-1.5">Exchange</label>
               {loading ? (

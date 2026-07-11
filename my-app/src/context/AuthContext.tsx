@@ -7,8 +7,7 @@ import {
 import type { StrapiUser } from "@/lib/api";
 import { getToken, getUser, saveToken, saveUser, clearAuth } from "@/lib/auth";
 
-// Sets/clears csep_token cookie via a Next.js API route so middleware can read it.
-
+// Auth state is stored in browser storage for the UI and mirrored into a cookie so Next.js proxy can protect routes before pages render.
 async function setAuthCookie(token: string, remember: boolean): Promise<void> {
   try {
     await fetch("/api/auth/set-cookie", {
@@ -25,7 +24,7 @@ async function clearAuthCookie(): Promise<void> {
   } catch { /* non-critical */ }
 }
 
-
+// Shape of the data and actions that every component receives from useAuth().
 interface AuthContextValue {
   user:            StrapiUser | null;
   token:           string | null;
@@ -33,7 +32,6 @@ interface AuthContextValue {
   setAuthData:     (token: string, user: StrapiUser, remember?: boolean) => Promise<void>;
   logout:          () => Promise<void>;
   isAuthenticated: boolean;
-  isAdmin:         boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -43,26 +41,29 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   const [token,     setToken]     = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Hydrate from storage on mount - await cookie refresh before marking ready.
+  // On first load, restore the saved login session and refresh the auth cookie.
   useEffect(() => {
     async function hydrate() {
       const storedToken = getToken();
       const storedUser  = getUser();
+
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(storedUser);
-        // Await cookie set so middleware is ready before isLoading → false
+        // Wait for the cookie before marking auth ready.
         await setAuthCookie(storedToken, true);
       } else {
-        // No stored session - clear any stale cookie from a previous session
+        // Remove any old cookie when no saved session exists.
         await clearAuthCookie();
       }
+
       setIsLoading(false);
     }
+
     hydrate();
   }, []);
 
-  // Called after login/register - awaitable so callers can wait for cookie.
+  // Called after login/register to save the JWT, user data, and proxy cookie.
   const setAuthData = useCallback(async (
     jwt: string, userData: StrapiUser, remember = true
   ): Promise<void> => {
@@ -70,26 +71,23 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     saveUser(userData, remember);
     setToken(jwt);
     setUser(userData);
-    await setAuthCookie(jwt, remember); // wait for cookie before returning
+    await setAuthCookie(jwt, remember);
   }, []);
 
-  // Clears all auth state and cookie.
+  // Logout clears browser storage, React state, and the cookie used by proxy.
   const logout = useCallback(async (): Promise<void> => {
     clearAuth();
     setToken(null);
     setUser(null);
-    await clearAuthCookie(); // wait for cookie to be cleared
+    await clearAuthCookie();
   }, []);
 
+  // Components can use this simple flag instead of checking token manually.
   const isAuthenticated = !!token;
-  const isAdmin = !!(
-    user?.role?.type === "admin" ||
-    user?.role?.name?.toLowerCase() === "admin"
-  );
 
   return (
     <AuthContext.Provider value={{
-      user, token, isLoading, setAuthData, logout, isAuthenticated, isAdmin,
+      user, token, isLoading, setAuthData, logout, isAuthenticated,
     }}>
       {children}
     </AuthContext.Provider>
@@ -98,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
+  // This makes incorrect usage obvious during development.
   if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
   return ctx;
 }

@@ -10,23 +10,27 @@ import { paginateItems } from "@/lib/pagination";
 type Tab = "active" | "completed" | "cancelled";
 type PillType = "pending" | "awaiting_confirmation" | "confirm_delivery" | "confirmed";
 
+// Label/value row used throughout each exchange card.
 function Row({ label, value }: { label: string; value: string }): JSX.Element {
   return (
-    <div className="flex gap-2 text-sm">
-      <span className="font-semibold text-gray-700 shrink-0 w-36">{label}:</span>
-      <span className="text-gray-600 wrap-break-word">{value || "-"}</span>
+    <div className="flex gap-1.5 sm:gap-2 text-sm">
+      <span className="font-semibold text-gray-700 shrink-0 w-28 sm:w-36">{label}:</span>
+      <span className="min-w-0 flex-1 text-gray-600 wrap-break-word">{value || "-"}</span>
     </div>
   );
 }
 
-function ModePill({ mode }: { mode: string }): JSX.Element {
+// Pill-style detail row used inside each skill exchange panel.
+function DetailPill({ label, children }: { label: string; children: React.ReactNode }): JSX.Element {
   return (
-    <span className={`inline-flex items-center border text-xs font-semibold px-2 py-0.5 rounded-full ${
-      mode === "Online" ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-orange-100 text-orange-700 border-orange-200"
-    }`}>{mode}</span>
+    <div className="min-w-0 rounded-xl border border-gray-200/70 bg-white/60 px-3 py-2 text-sm text-gray-800 flex items-start gap-1.5">
+      <span className="font-semibold text-gray-700 shrink-0 whitespace-nowrap">{label}:</span>
+      <span className="min-w-0 text-gray-600 wrap-break-word">{children}</span>
+    </div>
   );
 }
 
+// Shows delivery/receipt progress for each side of an exchange.
 function StatusPill({ type }: { type: PillType }): JSX.Element {
   const cfg: Record<PillType, { label: string; cls: string }> = {
     pending:               { label: "Pending",               cls: "bg-gray-100  text-gray-500  border-gray-200"  },
@@ -58,6 +62,7 @@ export default function ExchangesPage(): JSX.Element {
   const [cancelConfirmId, setCancelConfirmId] = useState<number | null>(null);
   const [page,            setPage]            = useState(1);
 
+  // Load every exchange involving the current user.
   const fetchExchanges = useCallback(async () => {
     if (!token) return;
     setLoading(true); setError(null);
@@ -66,21 +71,27 @@ export default function ExchangesPage(): JSX.Element {
     finally { setLoading(false); }
   }, [token]);
 
+  // Fetch exchanges when the page loads or when the token-backed fetch function changes.
   useEffect(() => { fetchExchanges(); }, [fetchExchanges]);
 
+  // Filter and paginate exchanges by active/completed/cancelled tab.
   const filtered = useMemo(() => exchanges.filter((x) => x.status === tab), [exchanges, tab]);
   const { items: pagedExchanges, state: pagination } = useMemo(
     () => paginateItems(filtered, page),
     [filtered, page]
   );
+
+  // Counts are shown beside each exchange-status tab.
   const counts   = useMemo(() => ({
     active:    exchanges.filter((x) => x.status === "active").length,
     completed: exchanges.filter((x) => x.status === "completed").length,
     cancelled: exchanges.filter((x) => x.status === "cancelled").length,
   }), [exchanges]);
 
+  // Reset pagination when switching between exchange-status tabs.
   useEffect(() => { setPage(1); }, [tab]);
 
+  // Marks one side of the exchange as delivered or received.
   async function handleAction(id: number, action: "deliver" | "receive") {
     if (!token) return;
     const key = `${id}-${action}`;
@@ -93,6 +104,7 @@ export default function ExchangesPage(): JSX.Element {
     finally { setActionKey(null); }
   }
 
+  // Cancels an active exchange after confirmation.
   async function handleCancel(id: number) {
     if (!token) return;
     setCancelConfirmId(null);
@@ -105,10 +117,13 @@ export default function ExchangesPage(): JSX.Element {
 
   return (
     <div>
+      {/* Page heading explains that this screen tracks the full exchange lifecycle. */}
       <h1 className="text-2xl md:text-3xl font-extrabold text-green-900">Exchanges</h1>
       <p className="mt-2 text-sm text-gray-600">Track your active, completed, and cancelled skill exchanges.</p>
 
+      {/* Tabs separate active, completed, and cancelled exchange records. */}
       <section className="mt-6 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        {/* Tab buttons show counts and reset cancel confirmation when switching tabs. */}
         <div className="flex flex-wrap gap-2 border-b border-gray-100 p-3">
           {(["active","completed","cancelled"] as Tab[]).map((key) => (
             <button key={key} type="button"
@@ -124,18 +139,24 @@ export default function ExchangesPage(): JSX.Element {
           ))}
         </div>
 
+        {/* Exchange list area handles loading, error, empty, and populated states. */}
         <div className="p-4 md:p-5 flex flex-col gap-4">
           {loading ? (
+            // Loading state appears while exchanges are being fetched from the API.
             <div className="py-10 text-center text-sm text-gray-400">Loading exchanges...</div>
           ) : error ? (
+            // Error state shows the API failure message if loading exchanges fails.
             <div className="py-10 text-center text-sm text-red-500">{error}</div>
           ) : filtered.length === 0 ? (
+            // Empty state appears when the selected tab has no exchanges.
             <div className="py-10 text-center text-sm text-gray-400">No {tab} exchanges.</div>
           ) : pagedExchanges.map((x) => {
 
+            // Work out which side of the exchange belongs to the logged-in user.
             const isRequester = x.requester_email === user?.email;
             const isActive    = tab === "active";
 
+            // Skill A belongs to requester, skill B belongs to provider.
             const aDelivered = x.skill_a_delivered === true;
             const aReceived  = x.skill_a_received  === true;
             const bDelivered = x.skill_b_delivered === true;
@@ -147,27 +168,33 @@ export default function ExchangesPage(): JSX.Element {
             const partnerName  = isRequester ? x.provider_name  : x.requester_name;
             const partnerEmail = isRequester ? x.provider_email : x.requester_email;
 
+            // Translate request/provider flags into "my side" and "their side" for the UI.
             const iDelivered  = isRequester ? aDelivered : bDelivered;
             const myDeliveryConfirmed = isRequester ? aReceived : bReceived;
             const theyDelivered = isRequester ? bDelivered : aDelivered;
             const iReceived   = isRequester ? bReceived : aReceived;
 
+            // Status for the skill the current user is providing.
             const providingPill: PillType =
               myDeliveryConfirmed ? "confirmed" :
               iDelivered          ? "awaiting_confirmation" :
               "pending";
 
+            // Status for the skill the current user is receiving.
             const receivingPill: PillType =
               iReceived    ? "confirmed" :
               theyDelivered ? "confirm_delivery" :
               "pending";
 
+            // Unique keys let only the clicked action button show a processing state.
             const deliveringKey = `${x.id}-deliver`;
             const receivingKey  = `${x.id}-receive`;
 
             return (
+              // Each exchange card shows partner info, both skill directions, and available actions.
               <div key={x.id} className="border border-gray-200 rounded-2xl p-4 md:p-5 bg-white">
 
+                {/* Exchange identity block: ID plus the other participant's name/email. */}
                 <div className="flex flex-col gap-2 mb-4">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[11px] font-extrabold tracking-wide uppercase text-gray-500">Exchange ID</span>
@@ -181,8 +208,10 @@ export default function ExchangesPage(): JSX.Element {
 
                 <div className="border-t border-gray-100 my-3" />
 
+                {/* Two-panel layout: one panel for what user provides, one for what user receives. */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
+                  {/* Providing panel tracks whether the user's delivered skill has been confirmed. */}
                   <div className={`rounded-xl border p-3.5 transition ${
                     providingPill === "confirmed"             ? "bg-green-50 border-green-200"
                     : providingPill === "awaiting_confirmation" ? "bg-amber-50 border-amber-200"
@@ -195,15 +224,14 @@ export default function ExchangesPage(): JSX.Element {
                       </p>
                       <StatusPill type={providingPill} />
                     </div>
-                    <div className="flex flex-col gap-2 mb-3">
-                      <Row label="Skill"          value={mySkill}          />
-                      <Row label="Scheduled Slot" value={x.preferred_slot} />
-                      <div className="flex gap-2 text-sm items-center">
-                        <span className="font-semibold text-gray-700 w-36 shrink-0">Mode:</span>
-                        <ModePill mode={x.mode} />
-                      </div>
+                    {/* Skill details use pill-style rows for consistent mobile and desktop layout. */}
+                    <div className="grid grid-cols-1 gap-2 mb-3">
+                      <DetailPill label="Skill">{mySkill || "-"}</DetailPill>
+                      <DetailPill label="Scheduled Slot">{x.preferred_slot || "-"}</DetailPill>
+                      <DetailPill label="Mode">{x.mode || "-"}</DetailPill>
                     </div>
 
+                    {/* User can mark their own provided skill as delivered while exchange is active. */}
                     {isActive && !iDelivered && (
                       <button type="button"
                         onClick={() => handleAction(x.id, "deliver")}
@@ -213,6 +241,7 @@ export default function ExchangesPage(): JSX.Element {
                       </button>
                     )}
 
+                    {/* After delivery, the user waits for the partner to confirm receipt. */}
                     {isActive && iDelivered && !myDeliveryConfirmed && (
                       <button type="button" disabled
                         className="w-full text-sm rounded-lg px-3 py-2.5 font-semibold text-amber-700 bg-amber-50 border border-amber-200 cursor-not-allowed">
@@ -221,6 +250,7 @@ export default function ExchangesPage(): JSX.Element {
                     )}
                   </div>
 
+                  {/* Receiving panel tracks whether the partner has delivered and user has confirmed receipt. */}
                   <div className={`rounded-xl border p-3.5 transition ${
                     receivingPill === "confirmed"        ? "bg-green-50 border-green-200"
                     : receivingPill === "confirm_delivery" ? "bg-blue-50 border-blue-200"
@@ -233,15 +263,14 @@ export default function ExchangesPage(): JSX.Element {
                       </p>
                       <StatusPill type={receivingPill} />
                     </div>
-                    <div className="flex flex-col gap-2 mb-3">
-                      <Row label="Skill"          value={theirSkill}       />
-                      <Row label="Scheduled Slot" value={x.preferred_slot} />
-                      <div className="flex gap-2 text-sm items-center">
-                        <span className="font-semibold text-gray-700 w-36 shrink-0">Mode:</span>
-                        <ModePill mode={x.mode} />
-                      </div>
+                    {/* Skill details use the same pill-style rows as the providing panel. */}
+                    <div className="grid grid-cols-1 gap-2 mb-3">
+                      <DetailPill label="Skill">{theirSkill || "-"}</DetailPill>
+                      <DetailPill label="Scheduled Slot">{x.preferred_slot || "-"}</DetailPill>
+                      <DetailPill label="Mode">{x.mode || "-"}</DetailPill>
                     </div>
 
+                    {/* User can confirm receipt only after the partner marks their skill delivered. */}
                     {isActive && theyDelivered && !iReceived && (
                       <button type="button"
                         onClick={() => handleAction(x.id, "receive")}
@@ -251,6 +280,7 @@ export default function ExchangesPage(): JSX.Element {
                       </button>
                     )}
 
+                    {/* Waiting hint appears until the partner marks their skill as delivered. */}
                     {isActive && !theyDelivered && (
                       <p className="text-xs text-gray-400 italic mt-1">
                         Waiting for {partnerName.split(" ")[0]} to mark as delivered.
@@ -261,8 +291,10 @@ export default function ExchangesPage(): JSX.Element {
 
                 <div className="border-t border-gray-100 my-3" />
 
+                {/* Footer actions change based on exchange status. */}
                 <div className="flex flex-wrap gap-2">
                   {isActive && (
+                    // Active exchanges require a confirmation click before cancellation.
                     cancelConfirmId === x.id ? (
                       <div className="flex items-center gap-2">
                         <button onClick={() => handleCancel(x.id)}
@@ -282,6 +314,7 @@ export default function ExchangesPage(): JSX.Element {
                     )
                   )}
                   {tab === "completed" && (
+                    // Completed exchanges can be reviewed by the user.
                     <Link href="/user/rating-and-reviews">
                       <button type="button"
                         className="inline-flex items-center justify-center rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700 transition">
@@ -290,6 +323,7 @@ export default function ExchangesPage(): JSX.Element {
                     </Link>
                   )}
                   {tab === "cancelled" && (
+                    // Cancelled exchanges can be reported if something went wrong.
                     <Link href="/user/report-abuse">
                       <button type="button"
                         className="inline-flex items-center justify-center rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 transition">

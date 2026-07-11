@@ -1,7 +1,8 @@
-// Shared password strength logic - used in register, reset-password, change-password.
+// Shared password strength logic used by register, reset-password, and change-password.
 
 export type StrengthLevel = "none" | "weak" | "medium" | "strong" | "very-strong";
 
+// Result shown by the password strength UI component.
 export interface PasswordStrength {
   level:  StrengthLevel;
   score:  number;
@@ -10,13 +11,14 @@ export interface PasswordStrength {
   errors: string[];  // list of unmet requirements
 }
 
+// Checks minimum password rules and converts them into a readable strength label.
 export function getPasswordStrength(p: string): PasswordStrength {
   if (!p) return { level: "none", score: 0, label: "", valid: false, errors: [] };
 
   let score = 0;
   const errors: string[] = [];
 
-  // Minimum requirements (must all pass)
+  // Minimum requirements that must pass before a password is considered valid.
   const hasLower   = /[a-z]/.test(p);
   const hasUpper   = /[A-Z]/.test(p);
   const hasNumber  = /\d/.test(p);
@@ -31,7 +33,7 @@ export function getPasswordStrength(p: string): PasswordStrength {
 
   const valid = errors.length === 0;
 
-  // Score system
+  // Extra length and character variety increase the strength score.
   if (hasMin8)          score += 1;
   if (p.length >= 12)   score += 1;
   if (p.length >= 16)   score += 1;  // bonus

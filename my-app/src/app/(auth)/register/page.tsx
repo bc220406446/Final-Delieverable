@@ -11,6 +11,7 @@ import MessageBanner, { FormMessage } from "@/app/components/shared/MessageBanne
 import PasswordStrength from "@/app/components/shared/PasswordStrength";
 import PasswordMatch from "@/app/components/shared/PasswordMatch";
 
+// Shared input class builder, with optional error border support.
 function inputCls(hasError = false): string {
   return [
     "w-full rounded-xl border px-3.5 py-2.5 text-sm text-gray-900",
@@ -18,8 +19,9 @@ function inputCls(hasError = false): string {
     "focus:ring-2 focus:ring-green-500 focus:border-green-500",
     hasError ? "border-red-400" : "border-gray-200",
   ].join(" ");
-}
+} 
 
+// Visual divider between the submit action and alternate navigation links.
 function OrDivider(): JSX.Element {
   return (
     <div className="flex items-center text-sm text-gray-400">
@@ -41,8 +43,10 @@ export default function RegisterPage(): JSX.Element {
   const [message,           setMessage]           = useState<FormMessage | null>(null);
   const [loading,           setLoading]           = useState(false);
 
+  // Recalculate password strength only when the password changes.
   const strength = useMemo(() => getPasswordStrength(password), [password]);
 
+  // Validates the form, creates the account, then stores the email for OTP verification.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     setMessage(null);
@@ -67,6 +71,7 @@ export default function RegisterPage(): JSX.Element {
     setLoading(true);
     try {
       await registerUser({ username: email, email, password, fullName, location });
+      // OTP page reads this email from session storage to verify the new account.
       sessionStorage.setItem("pendingEmail", email);
       setMessage({ type: "success", text: "Account created! Redirecting to OTP verification..." });
       setTimeout(() => router.push("/otp-verification"), 900);
@@ -90,6 +95,7 @@ export default function RegisterPage(): JSX.Element {
 
         <MessageBanner message={message} />
 
+        {/* Register form: collects profile details, validates password rules, and requires policy agreement. */}
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
 
           <div>

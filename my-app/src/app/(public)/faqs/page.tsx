@@ -6,11 +6,13 @@ import { getFaqPage, CmsFaqItem } from "@/lib/api";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
+// Converts Strapi relative media paths into full URLs that Next Image can load.
 function resolveUrl(url?: string | null): string | null {
   if (!url) return null;
   return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
 }
 
+// Renders the FAQ list as an accordion, keeping one item open by index.
 function FaqAccordion({ faqs }: { faqs: CmsFaqItem[] }): JSX.Element {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   return (
@@ -44,6 +46,7 @@ export default function FaqsPage(): JSX.Element {
   const [data, setData] = useState<Awaited<ReturnType<typeof getFaqPage>>>(null);
   const [loading, setLoading] = useState(true);
 
+  // Load FAQ page content from the CMS once when the page first mounts.
   useEffect(() => {
     getFaqPage()
       .then((d) => setData(d))
@@ -51,6 +54,7 @@ export default function FaqsPage(): JSX.Element {
       .finally(() => setLoading(false));
   }, []);
 
+  // While the CMS request is still running, show a simple loading state.
   if (loading) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center">
@@ -59,6 +63,7 @@ export default function FaqsPage(): JSX.Element {
     );
   }
 
+  // If the CMS request fails or returns no content, show a user-friendly fallback.
   if (!data) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center">
@@ -71,6 +76,7 @@ export default function FaqsPage(): JSX.Element {
 
   return (
     <main className="bg-gray-50 text-gray-800">
+      {/* Hero section: displays the FAQ intro copy and CMS-provided image. */}
       <section className="bg-linear-to-br from-green-700 to-green-500 text-white py-20 px-5">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           <div>
@@ -83,6 +89,7 @@ export default function FaqsPage(): JSX.Element {
         </div>
       </section>
 
+      {/* FAQ section: shows accordion items when available, otherwise an empty state. */}
       <section className="max-w-3xl mx-auto px-5 py-12 md:py-16">
         <h2 className="text-2xl md:text-3xl font-extrabold text-center text-green-900 mb-8">
           {data.section_heading}

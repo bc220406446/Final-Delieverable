@@ -1,11 +1,13 @@
 
 export type SkillLevel = "Beginner" | "Intermediate" | "Expert" | "";
 
+// Option shape used by skill category selects.
 export interface Category {
   id: string;
   label: string;
 }
 
+// Local form state shared by add/edit skill modals.
 export interface SkillFormState {
   title: string;
   desc: string;
@@ -17,6 +19,7 @@ export interface SkillFormState {
   imageFile: File | null;
 }
 
+// Field-level validation messages for skill forms.
 export interface SkillFormErrors {
   title?: string;
   desc?: string;
@@ -25,6 +28,7 @@ export interface SkillFormErrors {
   slots?: string;
 }
 
+// Clean payload passed from modal components back to page-level API handlers.
 export interface SkillPayload {
   title: string;
   description: string;
@@ -38,10 +42,12 @@ export interface SkillPayload {
 
 export const CATEGORIES: Category[] = [];
 
+// Convert Strapi categories into select-friendly options.
 export function toCategories(strapiCategories: { id: number; name: string }[]): Category[] {
   return strapiCategories.map((c) => ({ id: String(c.id), label: c.name }));
 }
 
+// Cities/modes available when offering a skill.
 export const CITIES = [
   "Islamabad", "Rawalpindi", "Lahore",   "Karachi",    "Faisalabad",
   "Multan",    "Peshawar",   "Quetta",   "Gujranwala", "Sialkot",
@@ -49,6 +55,7 @@ export const CITIES = [
   "Online",
 ] as const;
 
+// Shared input class builder with optional error border.
 export function inputCls(hasError = false): string {
   return [
     "w-full rounded-xl border px-3.5 py-2.5 text-sm text-gray-900",
@@ -58,6 +65,7 @@ export function inputCls(hasError = false): string {
   ].join(" ");
 }
 
+// Basic client-side validation before add/edit skill submit.
 export function validateSkillForm(form: SkillFormState): SkillFormErrors {
   const e: SkillFormErrors = {};
   if (!form.title.trim())  e.title      = "Skill title is required.";

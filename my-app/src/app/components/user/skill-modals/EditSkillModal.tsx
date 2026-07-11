@@ -29,6 +29,7 @@ interface Props {
   onClose: () => void;
 }
 
+// Modal for editing a skill; saving sends it back to pending review.
 export default function EditSkillModal({ skill, onSave, onClose }: Props): JSX.Element {
   const { token } = useAuth();
 
@@ -46,12 +47,14 @@ export default function EditSkillModal({ skill, onSave, onClose }: Props): JSX.E
   const [errors,  setErrors]  = useState<ReturnType<typeof validateSkillForm>>({});
   const [saving,  setSaving]  = useState(false);
 
+  // Allow Escape key to close the modal.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  // Load categories and match the existing category label to its Strapi id.
   useEffect(() => {
     if (!token) return;
     getSkillCategories(token)
@@ -66,11 +69,13 @@ export default function EditSkillModal({ skill, onSave, onClose }: Props): JSX.E
       .catch(() => {});
   }, [token, skill.category]);
 
+  // Update one form field and clear its validation error.
   function onChange<K extends keyof SkillFormState>(key: K, value: SkillFormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   }
 
+  // Validate edits and send a normalized update payload to the parent page.
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validateSkillForm(form);

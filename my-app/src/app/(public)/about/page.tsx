@@ -4,15 +4,18 @@ import { getAboutPage, CmsProblemBlock, CmsTeamMember } from "@/lib/api";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
+// Converts Strapi relative media paths into full URLs that Next Image can load.
 function resolveUrl(url?: string | null): string | null {
   if (!url) return null;
   return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
 }
 
+// Shared section title so every About page block keeps the same heading style.
 function SectionHeading({ children }: { children: React.ReactNode }): JSX.Element {
   return <h2 className="text-2xl md:text-3xl font-extrabold text-center text-green-900 mb-8">{children}</h2>;
 }
 
+// Displays one paired problem and solution block from CMS content.
 function ProblemSolutionBlock({ problem, solution }: CmsProblemBlock): JSX.Element {
   return (
     <div className="grid lg:grid-cols-2 gap-5 items-start">
@@ -28,6 +31,7 @@ function ProblemSolutionBlock({ problem, solution }: CmsProblemBlock): JSX.Eleme
   );
 }
 
+// Displays one team member profile, falling back to a local placeholder image.
 function TeamCard({ name, role, desc, image }: CmsTeamMember): JSX.Element {
   const imgUrl = image?.url
     ? (image.url.startsWith("http") ? image.url : `${STRAPI_URL}${image.url}`)
@@ -45,8 +49,10 @@ function TeamCard({ name, role, desc, image }: CmsTeamMember): JSX.Element {
 }
 
 export default async function AboutPage(): Promise<JSX.Element> {
+  // Fetch About page content on the server before rendering the page.
   const data = await getAboutPage();
 
+  // If the CMS request fails or returns no content, show a user-friendly fallback.
   if (!data) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center">
@@ -55,11 +61,11 @@ export default async function AboutPage(): Promise<JSX.Element> {
     );
   }
 
-const heroImgUrl = resolveUrl(data.hero_image?.url) ?? "";
-
+  const heroImgUrl = resolveUrl(data.hero_image?.url) ?? "";
 
   return (
     <main className="bg-gray-50 text-gray-800">
+      {/* Hero section: displays the About intro copy and CMS-provided image. */}
       <section className="bg-linear-to-br from-green-700 to-green-500 text-white py-20 px-5">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           <div>
@@ -72,6 +78,7 @@ const heroImgUrl = resolveUrl(data.hero_image?.url) ?? "";
         </div>
       </section>
 
+      {/* Problem and solution blocks are only rendered when the CMS provides them. */}
       {data.problem_blocks?.length > 0 && (
         <section className="py-16 px-5 bg-white">
           <div className="max-w-5xl mx-auto">
@@ -83,6 +90,7 @@ const heroImgUrl = resolveUrl(data.hero_image?.url) ?? "";
         </section>
       )}
 
+      {/* Team members are only rendered when the CMS provides profile cards. */}
       {data.team_members?.length > 0 && (
         <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-5">

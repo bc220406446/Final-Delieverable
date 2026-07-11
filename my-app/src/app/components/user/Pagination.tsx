@@ -10,6 +10,7 @@ interface Props {
   onPageChange: (page: number) => void;
 }
 
+// Builds a small sliding window of page numbers around the current page.
 function pageNumbers(page: number, pageCount: number): number[] {
   const start = Math.max(1, page - 2);
   const end = Math.min(pageCount, start + 4);
@@ -17,6 +18,7 @@ function pageNumbers(page: number, pageCount: number): number[] {
   return Array.from({ length: end - adjustedStart + 1 }, (_, i) => adjustedStart + i);
 }
 
+// Reusable pagination footer for user dashboard lists.
 export default function Pagination({
   page,
   pageCount,
@@ -25,6 +27,7 @@ export default function Pagination({
   endItem,
   onPageChange,
 }: Props): JSX.Element | null {
+  // Hide pagination when there is nothing to paginate.
   if (total === 0 || pageCount <= 1) return null;
 
   const btnBase = "inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50";
@@ -37,6 +40,7 @@ export default function Pagination({
         <span className="font-semibold text-gray-700">{total}</span>
       </p>
 
+      {/* Previous/numbered/next controls update the page in the parent component. */}
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"

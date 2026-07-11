@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
 
+// Sidebar links for the desktop user dashboard.
 const items = [
   { label: "Dashboard",         href: "/user" },
   { label: "My Profile",        href: "/user/my-profile" },
@@ -18,12 +19,14 @@ const items = [
   { label: "Report Abuse",      href: "/user/report-abuse" },
 ];
 
+// Desktop sidebar with user summary and active-route navigation.
 export default function UserSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
 
   const displayName = user?.fullName || user?.username || "User";
   const rawUrl = user?.profileImage?.url ?? null;
+  // Convert Strapi avatar URLs into full URLs; fall back to a local placeholder.
   const avatarUrl = rawUrl
     ? rawUrl.startsWith("http") ? rawUrl : `${STRAPI_URL}${rawUrl}`
     : null;
@@ -59,6 +62,7 @@ export default function UserSidebar() {
 
         <nav className="p-2">
           {items.map((it) => {
+            // Dashboard requires exact match; other links stay active for nested paths.
             const active =
               it.href === "/user"
                 ? pathname === it.href

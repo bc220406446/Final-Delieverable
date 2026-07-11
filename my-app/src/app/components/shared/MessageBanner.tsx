@@ -9,7 +9,9 @@ interface Props {
   message: FormMessage | null;
 }
 
+// Shared success/error banner for form feedback.
 export default function MessageBanner({ message }: Props): JSX.Element | null {
+  // Render nothing until a page provides a message.
   if (!message) return null;
 
   return (

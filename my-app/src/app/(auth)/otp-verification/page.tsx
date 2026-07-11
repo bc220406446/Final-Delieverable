@@ -16,6 +16,7 @@ export default function OtpVerificationPage(): JSX.Element {
   const [loading,      setLoading]      = useState<boolean>(false);
   const [resending,    setResending]    = useState<boolean>(false);
   const [countdown,    setCountdown]    = useState<number>(60);
+
   // Read sessionStorage after mount so server and client renders stay aligned.
   const [pendingEmail, setPendingEmail] = useState<string>("");
 
@@ -26,12 +27,14 @@ export default function OtpVerificationPage(): JSX.Element {
     setPendingEmail(stored);
   }, []);
 
+  // Counts down before the user can request another OTP code.
   useEffect(() => {
     if (countdown <= 0) return;
     const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(t);
   }, [countdown]);
 
+  // Stores one numeric digit per input and moves focus forward automatically.
   function handleChange(index: number, value: string): void {
     const digit = value.replace(/\D/g, "").slice(-1);
     const updated = [...otp];
@@ -40,11 +43,13 @@ export default function OtpVerificationPage(): JSX.Element {
     if (digit && index < 5) inputRefs.current[index + 1]?.focus();
   }
 
+  // Moves focus backward when the current empty digit field receives Backspace.
   function handleKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>): void {
     if (e.key === "Backspace" && !otp[index] && index > 0)
       inputRefs.current[index - 1]?.focus();
   }
 
+  // Allows pasting the full OTP and spreads digits across the six fields.
   function handlePaste(e: React.ClipboardEvent<HTMLInputElement>): void {
     e.preventDefault();
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
@@ -56,6 +61,7 @@ export default function OtpVerificationPage(): JSX.Element {
     inputRefs.current[next === -1 ? 5 : next]?.focus();
   }
 
+  // Verifies the entered OTP, stores auth data, and redirects to the user dashboard.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     setMessage(null);
@@ -84,6 +90,7 @@ export default function OtpVerificationPage(): JSX.Element {
     }
   }
 
+  // Sends a new OTP after the countdown ends and clears the current input.
   async function handleResend(): Promise<void> {
     if (countdown > 0 || resending || !pendingEmail) return;
     setResending(true);
@@ -120,6 +127,7 @@ export default function OtpVerificationPage(): JSX.Element {
 
         <MessageBanner message={message} />
 
+        {/* OTP form: six single-character inputs with paste support and resend controls. */}
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
           <div>
             <label className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-3 text-center">

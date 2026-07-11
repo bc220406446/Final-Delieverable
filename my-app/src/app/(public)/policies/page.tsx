@@ -4,6 +4,8 @@ import { useState, useEffect, JSX } from "react";
 import { getPoliciesPage, CmsPoliciesPage } from "@/lib/api";
 
 type TabKey = "privacy" | "terms" | "exchange" | "community";
+
+// Minimal shape of Strapi rich-text inline nodes used by this page.
 type RichTextChild = {
   text?: string;
   bold?: boolean;
@@ -11,6 +13,8 @@ type RichTextChild = {
   underline?: boolean;
   code?: boolean;
 };
+
+// Minimal shape of Strapi rich-text block nodes used by this page.
 type RichTextBlock = {
   type?: string;
   level?: number;
@@ -18,6 +22,7 @@ type RichTextBlock = {
   children?: (RichTextChild | RichTextBlock)[];
 };
 
+// Defines the visible policy tabs and the key used to select each CMS field.
 const TABS: { key: TabKey; label: string }[] = [
   { key: "privacy",   label: "Privacy Policy"      },
   { key: "terms",     label: "Terms of Service"     },
@@ -25,6 +30,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "community", label: "Community Guidelines" },
 ];
 
+// Converts inline rich-text marks from the CMS into React elements.
 function renderInline(children: RichTextChild[] = []): JSX.Element[] {
   return children.map((c, j) => {
     const text = c.text ?? "";
@@ -37,6 +43,7 @@ function renderInline(children: RichTextChild[] = []): JSX.Element[] {
   });
 }
 
+// Converts Strapi rich-text blocks into the styled policy content shown in the panel.
 function renderBlocks(blocks: unknown): JSX.Element {
   if (!Array.isArray(blocks) || blocks.length === 0) {
     return <p className="text-sm text-gray-400 italic">No content added yet.</p>;
@@ -81,6 +88,7 @@ function renderBlocks(blocks: unknown): JSX.Element {
   );
 }
 
+// Reusable tab button that highlights the currently selected policy.
 function TabButton({ label, isActive, onClick }: { label: string; isActive: boolean; onClick: () => void }): JSX.Element {
   return (
     <button type="button" onClick={onClick}
@@ -92,6 +100,7 @@ function TabButton({ label, isActive, onClick }: { label: string; isActive: bool
   );
 }
 
+// Displays the selected policy title, rich-text body, and last-updated date.
 function PolicyPanel({ title, content, lastUpdated }: { title: string; content: unknown; lastUpdated: string }): JSX.Element {
   return (
     <section className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-8">
@@ -109,6 +118,7 @@ export default function PoliciesPage(): JSX.Element {
   const [data,    setData]    = useState<CmsPoliciesPage | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Load all policy content from the CMS once when the page first mounts.
   useEffect(() => {
     getPoliciesPage()
       .then((d) => setData(d))
@@ -116,6 +126,7 @@ export default function PoliciesPage(): JSX.Element {
       .finally(() => setLoading(false));
   }, []);
 
+  // While the CMS request is still running, show a simple loading state.
   if (loading) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center">
@@ -124,6 +135,7 @@ export default function PoliciesPage(): JSX.Element {
     );
   }
 
+  // If the CMS request fails or returns no content, show a user-friendly fallback.
   if (!data) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center">
@@ -132,6 +144,7 @@ export default function PoliciesPage(): JSX.Element {
     );
   }
 
+  // Maps the selected tab to the matching CMS policy field and display title.
   const contentMap: Record<TabKey, { title: string; content: unknown }> = {
     privacy:   { title: "Privacy Policy",        content: data.privacy_policy        },
     terms:     { title: "Terms of Service",       content: data.terms_of_service      },
@@ -141,6 +154,7 @@ export default function PoliciesPage(): JSX.Element {
 
   return (
     <main className="bg-gray-50 text-gray-800">
+      {/* Page hero: introduces the policy area before the tabbed content. */}
       <section className="bg-linear-to-br from-green-700 to-green-500 text-white py-16 px-5">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-3xl md:text-4xl font-extrabold">Our Policies</h1>
@@ -151,11 +165,13 @@ export default function PoliciesPage(): JSX.Element {
       </section>
 
       <div className="max-w-4xl mx-auto px-5 py-10 md:py-14">
+        {/* Tab list: lets users switch between the different policy documents. */}
         <div className="flex flex-wrap gap-2 border-b border-gray-100 pb-3 mb-6">
           {TABS.map(({ key, label }) => (
             <TabButton key={key} label={label} isActive={active === key} onClick={() => setActive(key)} />
           ))}
         </div>
+        {/* Policy panel: renders the currently selected CMS content. */}
         <PolicyPanel
           title={contentMap[active].title}
           content={contentMap[active].content}

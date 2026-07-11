@@ -8,6 +8,7 @@ import PasswordInput from "@/app/components/shared/PasswordInput";
 import FormLabel from "@/app/components/shared/FormLabel";
 import MessageBanner, { FormMessage } from "@/app/components/shared/MessageBanner";
 
+// Shared input class builder for consistent auth form styling.
 function inputCls(): string {
   return [
     "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900",
@@ -16,6 +17,7 @@ function inputCls(): string {
   ].join(" ");
 }
 
+// Visual divider between the submit action and alternate navigation links.
 function OrDivider(): JSX.Element {
   return (
     <div className="flex items-center text-sm text-gray-400">
@@ -36,6 +38,7 @@ export default function LoginPage(): JSX.Element {
   const [message,    setMessage]    = useState<FormMessage | null>(null);
   const [loading,    setLoading]    = useState<boolean>(false);
 
+  // Validates the form, logs the user in, stores auth context, then redirects to the dashboard.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
 
@@ -50,6 +53,7 @@ export default function LoginPage(): JSX.Element {
     try {
       const { jwt, user } = await loginUser({ identifier: email, password });
 
+      // Fetch the full profile after login so global auth state has role/profile fields too.
       const fullUser = await getMe(jwt);
       setAuthData(jwt, fullUser ?? user, rememberMe);
 
@@ -73,6 +77,7 @@ export default function LoginPage(): JSX.Element {
 
         <MessageBanner message={message} />
 
+        {/* Login form: collects credentials and the optional remember-me preference. */}
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
 
           <div>

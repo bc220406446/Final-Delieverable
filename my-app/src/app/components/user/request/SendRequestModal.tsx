@@ -19,6 +19,7 @@ interface Props {
   onClose: () => void;
 }
 
+// Shared input/select class builder for this request modal.
 function inputCls(): string {
   return [
     "w-full rounded-xl border border-gray-200 bg-white",
@@ -28,10 +29,12 @@ function inputCls(): string {
   ].join(" ");
 }
 
+// Resolve an offered skill image URL for the selectable skill list.
 function resolveImage(skill: StrapiSkill): string | null {
   return resolveStrapiMediaUrl(skill.image);
 }
 
+// Modal for sending an exchange request to another skill provider.
 export default function SendRequestModal({ skill, onSent, onClose }: Props): JSX.Element {
   const { token, user } = useAuth();
 
@@ -44,6 +47,7 @@ export default function SendRequestModal({ skill, onSent, onClose }: Props): JSX
   const [submitting,    setSubmitting]    = useState(false);
   const [error,         setError]         = useState<string | null>(null);
 
+  // Load the user's approved skills, because only approved skills can be offered.
   useEffect(() => {
     if (!token) return;
     getMySkills(token)
@@ -52,12 +56,14 @@ export default function SendRequestModal({ skill, onSent, onClose }: Props): JSX
       .finally(() => setLoadingSkills(false));
   }, [token]);
 
+  // Allow Escape key to close the modal.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  // Validate request details and create the exchange request.
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -112,6 +118,7 @@ export default function SendRequestModal({ skill, onSent, onClose }: Props): JSX
 
           <div className="p-6">
 
+            {/* Summary of the skill the user is requesting. */}
             <div className="mb-5 bg-green-50 border border-green-100 rounded-xl p-4 flex flex-col gap-1">
               <p className="text-xs font-extrabold uppercase tracking-wide text-green-700 mb-1">You are requesting</p>
               {[
@@ -135,6 +142,7 @@ export default function SendRequestModal({ skill, onSent, onClose }: Props): JSX
             <form onSubmit={handleSubmit} noValidate>
               <div className="flex flex-col gap-5">
 
+                {/* User chooses one or more of their approved skills to offer. */}
                 <div>
                   <label className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-2">
                     Skills You Offer in Exchange * (select one or more)

@@ -5,6 +5,7 @@ interface Props {
   children: ReactNode;
 }
 
+// Reusable label style for auth/account forms.
 export default function FormLabel({ htmlFor, children }: Props): JSX.Element {
   return (
     <label htmlFor={htmlFor} className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-1.5">

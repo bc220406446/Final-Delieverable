@@ -6,6 +6,7 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
   revealLabel?: string;
 };
 
+// Icon shown when the password is hidden.
 function EyeIcon(): JSX.Element {
   return (
     <svg
@@ -25,6 +26,7 @@ function EyeIcon(): JSX.Element {
   );
 }
 
+// Icon shown when the password is visible.
 function EyeOffIcon(): JSX.Element {
   return (
     <svg
@@ -46,6 +48,7 @@ function EyeOffIcon(): JSX.Element {
   );
 }
 
+// Password input with a built-in show/hide toggle.
 export default function PasswordInput({
   className = "",
   disabled,
@@ -56,12 +59,14 @@ export default function PasswordInput({
 
   return (
     <div className="relative">
+      {/* Input type switches between password and text based on visibility state. */}
       <input
         {...props}
         type={visible ? "text" : "password"}
         className={`${className} pr-10`}
         disabled={disabled}
       />
+      {/* Button toggles visibility without submitting the parent form. */}
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}

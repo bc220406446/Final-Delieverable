@@ -17,11 +17,13 @@ interface Props {
   onClose: () => void;
 }
 
+// Empty state used when creating a brand-new skill.
 const EMPTY_FORM: SkillFormState = {
   title: "", desc: "", categoryId: "", level: "",
   city: "", slots: "", imagePreview: null, imageFile: null,
 };
 
+// Modal for creating a skill that will be submitted for admin review.
 export default function AddSkillModal({ onSave, onClose }: Props): JSX.Element {
   const { token } = useAuth();
 
@@ -30,12 +32,14 @@ export default function AddSkillModal({ onSave, onClose }: Props): JSX.Element {
   const [saving,     setSaving]     = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
 
+  // Allow Escape key to close the modal.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  // Load categories from Strapi so the user can select a valid skill category.
   useEffect(() => {
     if (!token) return;
     getSkillCategories(token)
@@ -43,11 +47,13 @@ export default function AddSkillModal({ onSave, onClose }: Props): JSX.Element {
       .catch(() => {});
   }, [token]);
 
+  // Update one form field and clear its validation error.
   function onChange<K extends keyof SkillFormState>(key: K, value: SkillFormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   }
 
+  // Validate form and pass a normalized payload back to the parent page.
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validateSkillForm(form);

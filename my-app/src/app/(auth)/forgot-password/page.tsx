@@ -19,6 +19,7 @@ export default function ForgotPasswordPage(): JSX.Element {
   const [loading,  setLoading]  = useState<boolean>(false);
   const [sent,     setSent]     = useState<boolean>(false);
 
+  // Requests a reset email while keeping the response generic for account privacy.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     setMessage(null);
@@ -62,6 +63,7 @@ export default function ForgotPasswordPage(): JSX.Element {
 
         <MessageBanner message={message} />
 
+        {/* Forgot-password form: accepts an email and disables after a reset request is sent. */}
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
 
           <div>
@@ -84,7 +86,7 @@ export default function ForgotPasswordPage(): JSX.Element {
             disabled={loading || sent}
             className="w-full py-2.5 rounded-xl text-white text-sm font-semibold bg-green-600 hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? "Sending..." : sent ? "Email Sent ✓" : "Send Reset Link"}
+            {loading ? "Sending..." : sent ? "Email Sent " : "Send Reset Link"}
           </button>
 
           <div className="flex items-center justify-between text-xs font-semibold pt-1">

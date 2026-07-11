@@ -11,6 +11,7 @@ import SendRequestModal, { SkillForRequest } from "@/app/components/user/request
 import Pagination from "@/app/components/user/Pagination";
 import { paginateItems } from "@/lib/pagination";
 
+// Location/mode options used by the browse filters.
 const CITIES = [
   "Islamabad", "Rawalpindi", "Lahore", "Karachi", "Faisalabad",
   "Multan", "Peshawar", "Quetta", "Gujranwala", "Sialkot",
@@ -18,6 +19,7 @@ const CITIES = [
   "Online",
 ] as const;
 
+// Shared input/select class builder for filter controls.
 function inputCls(): string {
   return [
     "w-full min-w-0 rounded-xl border border-gray-200 bg-white",
@@ -26,6 +28,7 @@ function inputCls(): string {
   ].join(" ");
 }
 
+// Label used above each filter field.
 function FilterLabel({ children }: { children: React.ReactNode }) {
   return (
     <label className="block text-xs font-extrabold uppercase tracking-wide text-gray-500 mb-1.5">
@@ -34,6 +37,7 @@ function FilterLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Compact metadata block for skill details.
 function Pill({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
@@ -43,10 +47,12 @@ function Pill({ label, value }: { label: string; value: string }) {
   );
 }
 
+// Resolve the best available Strapi media URL for a skill image.
 function resolveImage(skill: StrapiSkill): string | null {
   return resolveStrapiMediaUrl(skill.image);
 }
 
+// Prevent duplicate requests and show the correct CTA based on request/exchange state.
 function getRequestButtonState(
   skillId: number,
   justSent: Record<number, boolean>,
@@ -79,6 +85,7 @@ export default function BrowseSkillsPage() {
   const [pendingSkillIds,  setPendingSkillIds]  = useState<Set<number>>(new Set());
   const [acceptedSkillIds, setAcceptedSkillIds] = useState<Set<number>>(new Set());
 
+  // Load approved skills, filter options, existing requests, and active exchanges together.
   const fetchAll = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -128,6 +135,7 @@ export default function BrowseSkillsPage() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // Apply category, city/mode, level, and text search filters on the loaded skills.
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
     return skills.filter((s) => {
@@ -144,13 +152,16 @@ export default function BrowseSkillsPage() {
     });
   }, [skills, categories, category, city, level, q]);
 
+  // Reset pagination whenever filters change.
   useEffect(() => { setPage(1); }, [category, city, level, q]);
 
+  // Paginate the filtered skill list for the current page.
   const { items: pagedSkills, state: pagination } = useMemo(
     () => paginateItems(filtered, page),
     [filtered, page]
   );
 
+  // Mark the skill as pending locally after a request is sent from the modal.
   function handleSent() {
     if (activeSkill) {
       setSent((prev) => ({ ...prev, [activeSkill.id]: true }));
@@ -159,6 +170,7 @@ export default function BrowseSkillsPage() {
     setActiveSkill(null);
   }
 
+  // Convert the active Strapi skill into the smaller shape expected by SendRequestModal.
   const skillForModal: SkillForRequest | null = activeSkill ? {
     id:            String(activeSkill.id),
     title:         activeSkill.title,
@@ -174,6 +186,7 @@ export default function BrowseSkillsPage() {
         Explore approved skills from the community. Use filters to find the best match.
       </p>
 
+      {/* Filter panel controls which approved skills are shown below. */}
       <section className="mt-6 bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
 
@@ -220,6 +233,7 @@ export default function BrowseSkillsPage() {
         )}
       </section>
 
+      {/* Results section shows loading, error, empty, or paginated skill cards. */}
       <section className="mt-4 flex flex-col gap-4">
         {loading ? (
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-10 text-center text-sm text-gray-400">
@@ -291,6 +305,7 @@ export default function BrowseSkillsPage() {
         onPageChange={setPage}
       />
 
+      {/* Request modal opens for the selected skill only. */}
       {skillForModal && (
         <SendRequestModal
           skill={skillForModal}

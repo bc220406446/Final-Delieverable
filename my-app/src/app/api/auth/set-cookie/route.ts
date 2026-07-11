@@ -1,14 +1,16 @@
-// Called by AuthContext after login so middleware can read it reliably.
+// Called by AuthContext after login so middleware can read the auth token reliably.
 
 import { NextRequest, NextResponse } from "next/server";
 
 const COOKIE_NAME = "csep_token";
 
+// Stores the JWT in a cookie; "remember me" extends the cookie lifetime to seven days.
 export async function POST(req: NextRequest) {
   const { token, remember } = await req.json();
   const maxAge = remember ? 60 * 60 * 24 * 7 : undefined;
 
   const res = NextResponse.json({ ok: true });
+  // This cookie mirrors client auth state so middleware can protect routes during navigation.
   res.cookies.set(COOKIE_NAME, token, {
     path:     "/",
     sameSite: "lax",
@@ -19,6 +21,7 @@ export async function POST(req: NextRequest) {
   return res;
 }
 
+// Clears the auth cookie during logout by expiring it immediately.
 export async function DELETE() {
   const res = NextResponse.json({ ok: true });
   res.cookies.set(COOKIE_NAME, "", {

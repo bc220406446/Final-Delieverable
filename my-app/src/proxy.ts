@@ -1,13 +1,13 @@
-// Middleware - protects dashboard routes from unauthenticated access. Runs on the Edge before any page renders, so users never see a flash of protected content before being redirected.
+// Next.js proxy protects authenticated pages before React renders them.
 
 import { NextRequest, NextResponse } from "next/server";
 
-// Routes that require authentication
+// User dashboard routes require a valid login cookie.
 const PROTECTED_PREFIXES = [
   "/user",
 ];
 
-// Routes only accessible when NOT logged in (redirect logged-in users away)
+// Auth pages should not be opened again after a user is already logged in.
 const AUTH_ONLY_ROUTES = [
   "/login",
   "/register",
@@ -16,31 +16,31 @@ const AUTH_ONLY_ROUTES = [
   "/confirm-email",
 ];
 
-// Public routes that are always accessible regardless of auth state
+// These routes stay available even without checking login state.
 const ALWAYS_PUBLIC = ["/logout", "/otp-verification", "/confirm-email"];
 
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
-  // Read token from localStorage is not possible in middleware (Edge runtime). Instead we use a cookie. We need to set this cookie on login. Cookie name matches what we'll set in AuthContext.
+  // Proxy cannot read localStorage, so AuthContext mirrors the JWT into this cookie.
   const token = request.cookies.get("csep_token")?.value;
 
-  // Always allow public routes through
+  // Always allow public routes through.
   if (ALWAYS_PUBLIC.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
-  const isProtected  = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
-  const isAuthOnly   = AUTH_ONLY_ROUTES.some((p) => pathname.startsWith(p));
+  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+  const isAuthOnly  = AUTH_ONLY_ROUTES.some((p) => pathname.startsWith(p));
 
-  // Not logged in + trying to access protected route → redirect to login
+  // Visitors must log in before opening dashboard pages.
   if (isProtected && !token) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("from", pathname); // preserve intended destination
+    loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Logged in + trying to access login/register → redirect to dashboard
+  // Logged-in users are sent away from login/register style pages.
   if (isAuthOnly && token) {
     return NextResponse.redirect(new URL("/user", request.url));
   }
@@ -48,10 +48,10 @@ export function proxy(request: NextRequest): NextResponse {
   return NextResponse.next();
 }
 
-// Only run middleware on these paths - skip static files, API routes, etc.
+// Only run proxy on app routes that need auth decisions.
 export const config = {
   matcher: [
-    "/dashboard/:path*",
+    "/user/:path*",
     "/login",
     "/register",
     "/forgot-password",
