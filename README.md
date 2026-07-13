@@ -203,11 +203,10 @@ my-app/
 │
 └── src/                        # Next.js frontend
     ├── app/
-    │   ├── (auth)/             # Login, Register, OTP, Forgot Password
+    │   ├── (auth)/             # Login, Register, OTP, Forgot Password, reset password
     │   ├── (public)/           # Home, About, FAQs, Policies
-    │   └── dashboard/
-    │       └── user/           # All user dashboard pages
-    ├── components/             # Shared UI components
+    │   └── user/               # All user dashboard pages
+    |   └── components/         # Shared UI components
     ├── context/                # AuthContext (global auth state)
     └── lib/
         ├── api.ts              # All Strapi API functions

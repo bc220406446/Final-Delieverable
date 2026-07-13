@@ -2,14 +2,14 @@ import { factories } from '@strapi/strapi';
 
 const es = () => strapi.entityService as any;
 
-async function sendEmail(to: string, subject: string, html: string) {
+async function sendEmail(to: string, subject: string, html: string, action: string) {
   try {
     await (strapi.plugin('email').service('email') as any).send({
       to, subject, html, text: html.replace(/<[^>]+>/g, ''),
     });
-    strapi.log.info(`[CSEP] Exchange email sent successfully to ${to} | Subject: ${subject}`);
+    strapi.log.info(`[CSEP] ${action} email sent successfully to ${to} | Subject: ${subject}`);
   } catch (err: any) {
-    strapi.log.warn(`[CSEP] Exchange email failed to ${to} | Subject: ${subject} | Error: ${err?.message}`);
+    strapi.log.warn(`[CSEP] ${action} email failed to send to ${to} | Subject: ${subject} | Error: ${err?.message ?? err}`);
   }
 }
 
@@ -118,8 +118,8 @@ export default factories.createCoreController('api::exchange.exchange', () => ({
       html += '<p style="color:#6b7280;font-size:13px">You can now leave a review from your Exchanges page.</p>';
       html += '</div>';
       await Promise.all([
-        sendEmail(ex.requester_email, 'Exchange Completed - CSEP', html),
-        sendEmail(ex.provider_email,  'Exchange Completed - CSEP', html),
+        sendEmail(ex.requester_email, 'Exchange Completed - CSEP', html, 'Exchange completed'),
+        sendEmail(ex.provider_email,  'Exchange Completed - CSEP', html, 'Exchange completed'),
       ]);
     }
 
@@ -150,7 +150,7 @@ export default factories.createCoreController('api::exchange.exchange', () => ({
     html += '<tr><td style="padding:6px 0;color:#6b7280;width:140px">Exchange ID:</td><td style="font-weight:600">' + ex.exchange_id + '</td></tr>';
     html += '</table>';
     html += '</div>';
-    await sendEmail(otherEmail, 'Exchange Cancelled - CSEP', html);
+    await sendEmail(otherEmail, 'Exchange Cancelled - CSEP', html, 'Exchange cancelled');
 
     return ctx.send({ data: updated });
   },

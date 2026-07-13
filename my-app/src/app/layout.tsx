@@ -3,7 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
-  title: "Community Skills Exchange Plateform",
+  title: "Community Skills Exchange Platform",
   description: "Community Skills Exchange Platform",
 };
 

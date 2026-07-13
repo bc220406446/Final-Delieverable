@@ -20,10 +20,13 @@ export default (plugin: any) => {
       const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
       const resetLink   = `${frontendUrl}/reset-password?code=${resetToken}`;
 
-      await (strapiInstance.plugin('email').service('email') as any).send({
-        to:      user.email,
-        subject: 'Reset your CSEP password',
-        html: `
+      const subject = 'Reset your CSEP password';
+
+      try {
+        await (strapiInstance.plugin('email').service('email') as any).send({
+          to: user.email,
+          subject,
+          html: `
           <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;border:1px solid #e5e7eb;border-radius:12px">
             <h2 style="color:#14532d;margin-bottom:8px">Reset your password</h2>
             <p style="color:#6b7280;margin-bottom:24px">
@@ -48,11 +51,15 @@ export default (plugin: any) => {
               This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.
             </p>
           </div>
-        `,
-        text: `Reset your CSEP password:\n\n${resetLink}\n\nThis link expires in 1 hour. If you did not request this, ignore this email.`,
-      });
+          `,
+          text: `Reset your CSEP password:\n\n${resetLink}\n\nThis link expires in 1 hour. If you did not request this, ignore this email.`,
+        });
+      } catch (err: any) {
+        strapiInstance.log.warn(`[CSEP] Reset password email failed to send to ${user?.email} (userId=${user?.id}) | Subject: ${subject} | Error: ${err?.message ?? err}`);
+        throw err;
+      }
 
-      strapiInstance.log.info(`[CSEP] ✅ Reset password email sent to ${user?.email}`);
+      strapiInstance.log.info(`[CSEP] Reset password email sent successfully to ${user?.email} (userId=${user?.id})`);
     };
 
     return userService;

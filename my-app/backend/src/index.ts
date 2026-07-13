@@ -63,7 +63,7 @@ export default {
         try {
           await sendRegistrationOtp(strapi, result.id, result.email);
         } catch (err: any) {
-          strapi.log.error(`[CSEP] Registration OTP email failed for ${result.email}: ${err?.message ?? err}`);
+          strapi.log.warn(`[CSEP] Registration OTP email failed for ${result.email}: ${err?.message ?? err}`);
         }
       },
     });
