@@ -5,16 +5,12 @@ const es = () => strapi.entityService as any;
 async function sendRequestEmail(
   to: string,
   subject: string,
-  html: string,
-  action: string
+  html: string
 ) {
   try {
     await (strapi.plugin('email').service('email') as any).send({ to, subject, html,
       text: html.replace(/<[^>]+>/g, '') });
-    strapi.log.info(`[CSEP] ${action} email sent successfully to ${to} | Subject: ${subject}`);
-  } catch (err: any) {
-    strapi.log.warn(`[CSEP] ${action} email failed to send to ${to} | Subject: ${subject} | Error: ${err?.message ?? err}`);
-  }
+  } catch { /* Do not fail the request action when notification delivery fails. */ }
 }
 
 export default factories.createCoreController('api::request.request', () => ({
@@ -64,8 +60,7 @@ export default factories.createCoreController('api::request.request', () => ({
           ${body.message ? `<tr><td style="padding:6px 0;color:#6b7280">Message:</td><td>${body.message}</td></tr>` : ''}
         </table>
         <p style="color:#6b7280;font-size:13px">Log in to your CSEP dashboard to Accept or Reject this request.</p>
-      </div>`,
-      'New skill exchange request'
+      </div>`
     );
 
     // Confirmation to requester
@@ -80,8 +75,7 @@ export default factories.createCoreController('api::request.request', () => ({
           <tr><td style="padding:6px 0;color:#6b7280">You offered:</td><td style="font-weight:600">${body.offered_skill_title}</td></tr>
         </table>
         <p style="color:#6b7280;font-size:13px">You'll receive an email when the provider responds.</p>
-      </div>`,
-      'Request confirmation'
+      </div>`
     );
 
     return ctx.send({ data: created });
@@ -159,8 +153,7 @@ export default factories.createCoreController('api::request.request', () => ({
           <tr><td style="padding:6px 0;color:#6b7280">Mode:</td><td>${req.mode}</td></tr>
         </table>
         <p style="color:#6b7280;font-size:13px">Log in to your Exchanges page to track and confirm this exchange.</p>
-      </div>`,
-      'Request accepted and exchange created'
+      </div>`
     );
 
     return ctx.send({ data: updated });
@@ -189,8 +182,7 @@ export default factories.createCoreController('api::request.request', () => ({
           <tr><td style="padding:6px 0;color:#6b7280;width:140px">Skill requested:</td><td style="font-weight:600">${req.requested_skill_title}</td></tr>
         </table>
         <p style="color:#6b7280;font-size:13px">You can browse other skills and send new requests.</p>
-      </div>`,
-      'Request declined'
+      </div>`
     );
 
     return ctx.send({ data: updated });

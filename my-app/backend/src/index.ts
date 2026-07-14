@@ -44,14 +44,30 @@ async function sendRegistrationOtp(strapi: Core.Strapi, userId: number, email: s
     `,
     text: `Your CSEP verification code is: ${otp}\n\nOr verify instantly: ${confirmLink}\n\nThis code expires in 10 minutes.`,
   });
-
-  strapi.log.info(`[CSEP] Registration OTP email sent successfully to ${email} (userId=${userId})`);
 }
 
 export default {
   register({ strapi }: { strapi: Core.Strapi }) {},
 
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
+    // Log every email sent through Strapi's email service, including emails triggered internally by plugins (such as forgot-password emails).
+    const emailService = strapi.plugin('email').service('email') as any;
+    const originalSend = emailService.send.bind(emailService);
+
+    emailService.send = async (options: any) => {
+      const recipient = Array.isArray(options?.to) ? options.to.join(', ') : options?.to ?? 'unknown recipient';
+      const subject = options?.subject ?? 'No subject';
+
+      try {
+        const result = await originalSend(options);
+        strapi.log.info(`[CSEP] Email sent successfully to ${recipient} | Subject: ${subject}`);
+        return result;
+      } catch (err: any) {
+        strapi.log.warn(`[CSEP] Email failed to send to ${recipient} | Subject: ${subject} | Error: ${err?.message ?? err}`);
+        throw err;
+      }
+    };
+
     strapi.db.lifecycles.subscribe({
       models: ['plugin::users-permissions.user'],
       async afterCreate(event: any) {
@@ -62,9 +78,7 @@ export default {
 
         try {
           await sendRegistrationOtp(strapi, result.id, result.email);
-        } catch (err: any) {
-          strapi.log.warn(`[CSEP] Registration OTP email failed for ${result.email}: ${err?.message ?? err}`);
-        }
+        } catch { /* Central email logger records the delivery failure. */ }
       },
     });
 

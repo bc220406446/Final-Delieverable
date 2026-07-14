@@ -75,11 +75,10 @@ export default {
 
     const subject = 'Verify your CSEP account';
 
-    try {
-      await (strapi.plugin('email').service('email') as any).send({
-        to: user.email,
-        subject,
-        html: `
+    await (strapi.plugin('email').service('email') as any).send({
+      to: user.email,
+      subject,
+      html: `
         <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;border:1px solid #e5e7eb;border-radius:12px">
           <h2 style="color:#14532d;margin-bottom:8px">Verify your account</h2>
           <p style="color:#6b7280;margin-bottom:24px">
@@ -101,15 +100,9 @@ export default {
             This code expires in 10 minutes. If you did not create an account, you can safely ignore this email.
           </p>
         </div>
-        `,
-        text: `Your CSEP verification code is: ${otp}\n\nOr verify instantly: ${confirmLink}\n\nThis code expires in 10 minutes.`,
-      });
-    } catch (err: any) {
-      strapi.log.warn(`[CSEP] OTP resend email failed to send to ${user.email} (userId=${user.id}) | Subject: ${subject} | Error: ${err?.message ?? err}`);
-      throw err;
-    }
-
-    strapi.log.info(`[CSEP] OTP resend email sent successfully to ${user.email} (userId=${user.id})`);
+      `,
+      text: `Your CSEP verification code is: ${otp}\n\nOr verify instantly: ${confirmLink}\n\nThis code expires in 10 minutes.`,
+    });
     return ctx.send({ ok: true });
   },
 
