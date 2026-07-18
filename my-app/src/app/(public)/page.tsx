@@ -35,6 +35,12 @@ function CategoryCard({ title, desc, image }: CmsCategoryCard): JSX.Element {
       <div className="p-4">
         <h3 className="font-extrabold text-sm text-gray-900 leading-snug">{title}</h3>
         <p className="text-xs text-gray-500 mt-1 leading-relaxed">{desc}</p>
+        <Link
+          href={`/available-skills?category=${encodeURIComponent(title)}`}
+          className="mt-4 flex flex-row items-center justify-center rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-700"
+        >
+          View Related Skills
+        </Link>
       </div>
     </div>
   );

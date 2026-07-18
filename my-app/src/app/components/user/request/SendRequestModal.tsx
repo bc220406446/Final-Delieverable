@@ -152,7 +152,7 @@ export default function SendRequestModal({ skill, onSent, onClose }: Props): JSX
                     <div className="text-sm text-gray-400 py-3">Loading your skills...</div>
                   ) : mySkills.length === 0 ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                      You have no approved skills to offer. Get a skill approved first.
+                      First get a skill approved before sending an exchange request.
                     </div>
                   ) : (
                     <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">

@@ -1,0 +1,15 @@
+{
+  "kind": "singleType",
+  "collectionName": "available_skills_pages",
+  "info": {
+    "singularName": "available-skills-page",
+    "pluralName": "available-skills-pages",
+    "displayName": "Available Skills Page"
+  },
+  "options": { "draftAndPublish": true },
+  "attributes": {
+    "hero_title":       { "type": "string", "required": true },
+    "hero_description": { "type": "text", "required": true },
+    "hero_image":       { "type": "media", "multiple": false, "allowedTypes": ["images"] }
+  }
+}

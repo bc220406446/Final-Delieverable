@@ -13,6 +13,11 @@ export default function Footer() {
             </Link>
           </li>
           <li>
+            <Link href="/available-skills" className="hover:text-green-400">
+              Available Skills
+            </Link>
+          </li>
+          <li>
             <Link href="/faqs" className="hover:text-green-400">
               FAQ
             </Link>

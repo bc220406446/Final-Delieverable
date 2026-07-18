@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 // Public navigation links shared by desktop and mobile menus.
 const NAV_LINKS = [
   { href: "/", label: "Home" },
+  { href: "/available-skills", label: "Available Skills" },
   { href: "/about", label: "About" },
   { href: "/faqs", label: "FAQs" },
   { href: "/policies", label: "Policies" },

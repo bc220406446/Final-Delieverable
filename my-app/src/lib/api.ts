@@ -305,6 +305,23 @@ export async function getApprovedSkills(token: string): Promise<StrapiSkill[]> {
   return res.data.map((item) => normalizeSkill(item));
 }
 
+// Public catalogue of approved skills. Strapi's Public role must have `find`
+// permission for the Skill content type; no private or draft skills are returned.
+export async function getPublicApprovedSkills(): Promise<StrapiSkill[]> {
+  const params = new URLSearchParams({
+    "filters[state][$eq]": "approved",
+    "populate[image]":     "true",
+    "populate[category]":  "true",
+    "pagination[limit]":   "200",
+  });
+
+  const res = await strapiRequest<StrapiSkillsResponse>(
+    `/api/skills?${params.toString()}`
+  );
+
+  return res.data.map((item) => normalizeSkill(item));
+}
+
 
 export async function getMySkills(token: string): Promise<StrapiSkill[]> {
   const params = new URLSearchParams({
@@ -685,6 +702,12 @@ export interface CmsAboutPage {
   team_members:     CmsTeamMember[];
 }
 
+export interface CmsAvailableSkillsPage {
+  hero_title:       string;
+  hero_description: string;
+  hero_image?:      { url: string } | null;
+}
+
 export interface CmsFaqPage {
   hero_title:       string;
   hero_description: string;
@@ -715,6 +738,12 @@ export async function getAboutPage(): Promise<CmsAboutPage | null> {
     return await cmsGet(
       "/api/about-page?populate[hero_image]=true&populate[problem_blocks]=true&populate[team_members][populate][image]=true"
     ) as CmsAboutPage;
+  } catch { return null; }
+}
+
+export async function getAvailableSkillsPage(): Promise<CmsAvailableSkillsPage | null> {
+  try {
+    return await cmsGet("/api/available-skills-page?populate[hero_image]=true") as CmsAvailableSkillsPage;
   } catch { return null; }
 }
 

@@ -476,6 +476,37 @@ export interface ApiAboutPageAboutPage extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiAvailableSkillsPageAvailableSkillsPage
+  extends Struct.SingleTypeSchema {
+  collectionName: 'available_skills_pages';
+  info: {
+    displayName: 'Available Skills Page';
+    pluralName: 'available-skills-pages';
+    singularName: 'available-skills-page';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    hero_description: Schema.Attribute.Text & Schema.Attribute.Required;
+    hero_image: Schema.Attribute.Media<'images'>;
+    hero_title: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::available-skills-page.available-skills-page'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiExchangeExchange extends Struct.CollectionTypeSchema {
   collectionName: 'exchanges';
   info: {
@@ -1344,6 +1375,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::about-page.about-page': ApiAboutPageAboutPage;
+      'api::available-skills-page.available-skills-page': ApiAvailableSkillsPageAvailableSkillsPage;
       'api::exchange.exchange': ApiExchangeExchange;
       'api::faq-page.faq-page': ApiFaqPageFaqPage;
       'api::home-page.home-page': ApiHomePageHomePage;
